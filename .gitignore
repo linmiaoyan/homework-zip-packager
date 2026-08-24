@@ -16,3 +16,7 @@ __pycache__/
 build/
 dist/
 *.spec
+
+# 部署产物中的 Windows 可执行文件（体积大，按需本地生成，不入库）
+# 覆盖 deployed/<slug>/package/*.exe 等任何位置生成的 exe
+deployed/**/*.exe
