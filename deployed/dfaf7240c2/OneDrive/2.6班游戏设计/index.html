@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>温科高・红烛回响</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background-color: #000000;
+            color: #ffffff;
+            overflow: hidden;
+        }
+        
+        #game-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            background-color: #0a0a0a;
+            overflow: hidden;
+        }
+        
+        #scene-container {
+            width: 100%;
+            height: 70vh;
+            position: relative;
+            background-size: cover;
+            background-position: center;
+            transition: background-image 1s ease-in-out;
+        }
+        
+        #overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 900;
+        }
+        
+        #dialog-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            max-width: 800px;
+            background-color: rgba(20, 20, 20, 0.95);
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.3);
+            border: 1px solid rgba(255, 0, 0, 0.5);
+            z-index: 1000;
+        }
+        
+        #character-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #ff6b6b;
+        }
+        
+        #dialog-text {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            min-height: 80px;
+        }
+        
+        #options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .option-btn {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            padding: 12px 20px;
+            color: #ffffff;
+            font-size: 14px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .option-btn:hover {
+            background-color: rgba(255, 107, 107, 0.3);
+            border-color: #ff6b6b;
+            transform: translateX(10px);
+        }
+        
+        #ui-container {
+            width: 100%;
+            height: 30vh;
+            background-color: #1a1a1a;
+            border-top: 1px solid rgba(255, 0, 0, 0.3);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        
+        #fear-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        #fear-label {
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        #fear-bar {
+            flex: 1;
+            height: 20px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        #fear-progress {
+            height: 100%;
+            background-color: #ff6b6b;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        #fear-value {
+            font-size: 14px;
+            font-weight: bold;
+            min-width: 30px;
+        }
+        
+        #inventory-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .inventory-item {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .inventory-item:hover {
+            background-color: rgba(255, 107, 107, 0.3);
+            border-color: #ff6b6b;
+        }
+        
+        #puzzle-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(20, 20, 20, 0.95);
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.3);
+            border: 1px solid rgba(255, 0, 0, 0.5);
+            display: none;
+            width: 90%;
+            max-width: 600px;
+            z-index: 1100;
+            cursor: move;
+        }
+        
+        #puzzle-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        #puzzle-close {
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        
+        #puzzle-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .puzzle-option {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            padding: 12px 20px;
+            color: #ffffff;
+            font-size: 14px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .puzzle-option:hover {
+            background-color: rgba(255, 107, 107, 0.3);
+            border-color: #ff6b6b;
+            transform: translateX(10px);
+        }
+        
+        #puzzle-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #ff6b6b;
+        }
+        
+        #puzzle-content {
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        
+        #puzzle-input {
+            width: 100%;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            color: #ffffff;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+        
+        #puzzle-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        
+        .puzzle-btn {
+            padding: 8px 16px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            color: #ffffff;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .puzzle-btn:hover {
+            background-color: rgba(255, 107, 107, 0.3);
+            border-color: #ff6b6b;
+        }
+        
+        #ending-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.95);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px;
+            z-index: 1200;
+        }
+        
+        #ending-title {
+            font-size: 36px;
+            font-weight: bold;
+            color: #ff6b6b;
+            margin-bottom: 20px;
+        }
+        
+        #ending-text {
+            font-size: 18px;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            max-width: 800px;
+        }
+        
+        #restart-btn {
+            padding: 12px 24px;
+            background-color: #ff6b6b;
+            border: none;
+            border-radius: 5px;
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        #restart-btn:hover {
+            background-color: #ff4757;
+            transform: scale(1.05);
+        }
+        
+        .fade-in {
+            animation: fadeIn 1s ease-in;
+        }
+        
+        .shake {
+            animation: shake 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        
+        .red-glow {
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <!-- 场景容器 -->
+        <div id="scene-container">
+            <div id="overlay"></div>
+        </div>
+        
+        <!-- 对话容器 -->
+        <div id="dialog-container" class="fade-in">
+            <div id="character-name">张老师</div>
+            <div id="dialog-text">吴贤家，你是转来的新生，今晚晚自习结束后，去旧教学楼三楼的 301 教室，帮我把学生档案袋取回来。</div>
+            <div id="options-container">
+                <div class="option-btn" data-option="1">好的老师，我现在就去。</div>
+                <div class="option-btn" data-option="2">老师，旧三楼不是不让进吗？我不敢去。</div>
+                <div class="option-btn" data-option="3">为什么是我去？其他同学呢？</div>
+            </div>
+        </div>
+        
+        <!-- UI容器 -->
+        <div id="ui-container">
+            <!-- 恐惧值 -->
+            <div id="fear-container">
+                <div id="fear-label">恐惧值：</div>
+                <div id="fear-bar">
+                    <div id="fear-progress"></div>
+                </div>
+                <div id="fear-value">0</div>
+            </div>
+            
+            <!-- 道具栏 -->
+            <div id="inventory-container">
+                <!-- 道具将动态添加 -->
+            </div>
+        </div>
+        
+        <!-- 解谜容器 -->
+        <div id="puzzle-container">
+            <div id="puzzle-header">
+                <div id="puzzle-title">解谜：翻窗离开教室</div>
+                <button id="puzzle-close">×</button>
+            </div>
+            <div id="puzzle-content">你发现教室后门被锁死，只有一扇破损的窗户可翻出。观察窗户破损处，用手指抠住窗框缝隙攀爬。</div>
+            <div id="puzzle-options">
+                <!-- 选项将动态添加 -->
+            </div>
+        </div>
+        
+        <!-- 结局容器 -->
+        <div id="ending-container">
+            <div id="ending-title">死亡结局</div>
+            <div id="ending-text">你被黑暗吞噬，永远困在了温科高的旧教学楼里...</div>
+            <button id="restart-btn">重新开始</button>
+        </div>
+    </div>
+    
+    <script src="game.js"></script>
+</body>
+</html>

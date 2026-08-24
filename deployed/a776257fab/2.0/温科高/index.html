@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>恐怖科高中 - 校园夜惊魂</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #000000;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+
+        canvas {
+            display: block;
+            cursor: none;
+        }
+
+        #ui {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: #ffffff;
+            font-size: 14px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border: 1px solid #333;
+            z-index: 10;
+        }
+
+        #ui h3 {
+            margin-bottom: 8px;
+            color: #ff4444;
+        }
+
+        #ui p {
+            margin: 4px 0;
+            opacity: 0.8;
+        }
+
+        #minimap {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 200px;
+            height: 200px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #444;
+            z-index: 10;
+        }
+
+        #minimap canvas {
+            width: 100%;
+            height: 100%;
+            cursor: default;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <div id="ui">
+        <h3>恐怖科高中 - 校园夜惊魂</h3>
+        <p>WASD 或 方向键 控制移动</p>
+        <p>Shift - 奔跑 | E - 互动/拾取 | Tab - 背包</p>
+        <p>当前坐标: <span id="coords">0, 0</span></p>
+    </div>
+    <div id="minimap">
+        <canvas id="minimapCanvas" width="200" height="200"></canvas>
+    </div>
+
+    <script src="game.js"></script>
+    <script src="game-horror.js"></script>
+</body>
+</html>

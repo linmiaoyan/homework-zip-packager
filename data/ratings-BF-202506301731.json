@@ -1,0 +1,132 @@
+{
+  "games": {
+    "985da61a80": [
+      {
+        "nickname": "测试",
+        "score": 88,
+        "created_at": "2026-06-03 15:32:01"
+      },
+      {
+        "nickname": "25l",
+        "score": 100,
+        "created_at": "2026-06-03 15:42:05"
+      },
+      {
+        "nickname": "高煜，曹迪",
+        "score": 100,
+        "created_at": "2026-06-03 15:47:31"
+      },
+      {
+        "nickname": "11",
+        "score": 91,
+        "created_at": "2026-06-03 16:28:40"
+      }
+    ],
+    "560aab6e84": [
+      {
+        "nickname": "高煜，曹迪",
+        "score": 85,
+        "created_at": "2026-06-03 15:45:59"
+      },
+      {
+        "nickname": "25452.",
+        "score": 100,
+        "created_at": "2026-06-03 15:46:02"
+      },
+      {
+        "nickname": "陈子乐",
+        "score": 90,
+        "created_at": "2026-06-03 16:27:46"
+      }
+    ],
+    "a776257fab": [
+      {
+        "nickname": "91",
+        "score": 78,
+        "created_at": "2026-06-03 15:47:43"
+      },
+      {
+        "nickname": "高煜，曹迪",
+        "score": 100,
+        "created_at": "2026-06-03 15:56:19"
+      },
+      {
+        "nickname": "11",
+        "score": 91,
+        "created_at": "2026-06-03 16:25:32"
+      }
+    ],
+    "dfaf7240c2": [
+      {
+        "nickname": "高煜，曹迪",
+        "score": 80,
+        "created_at": "2026-06-03 15:50:17"
+      }
+    ],
+    "7f9940eb98": [
+      {
+        "nickname": "高煜，曹迪",
+        "score": 80,
+        "created_at": "2026-06-03 15:51:37"
+      },
+      {
+        "nickname": "陈子乐",
+        "score": 100,
+        "created_at": "2026-06-03 15:56:14"
+      },
+      {
+        "nickname": "11",
+        "score": 88,
+        "created_at": "2026-06-03 16:26:58"
+      }
+    ],
+    "bdc25ff6c7": [
+      {
+        "nickname": "高煜，曹迪",
+        "score": 100,
+        "created_at": "2026-06-03 15:53:15"
+      },
+      {
+        "nickname": "陈子乐",
+        "score": 85,
+        "created_at": "2026-06-03 16:21:05"
+      },
+      {
+        "nickname": "11",
+        "score": 91,
+        "created_at": "2026-06-03 16:31:12"
+      }
+    ],
+    "f9cf297dfa": [
+      {
+        "nickname": "高煜，曹迪",
+        "score": 91,
+        "created_at": "2026-06-03 15:55:02"
+      },
+      {
+        "nickname": "11",
+        "score": 60,
+        "created_at": "2026-06-03 16:33:17"
+      }
+    ],
+    "7d7c44cf8d": [
+      {
+        "nickname": "连启昊",
+        "score": 90,
+        "created_at": "2026-06-03 16:16:49"
+      },
+      {
+        "nickname": "陈子乐",
+        "score": 90,
+        "created_at": "2026-06-03 16:24:10"
+      }
+    ],
+    "4b691b0303": [
+      {
+        "nickname": "11",
+        "score": 70,
+        "created_at": "2026-06-03 16:29:49"
+      }
+    ]
+  }
+}

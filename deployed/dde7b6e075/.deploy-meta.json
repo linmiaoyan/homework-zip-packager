@@ -1,0 +1,24 @@
+{
+  "slug": "dde7b6e075",
+  "zip_name": "1111 喻思源 铁面滑索侠.zip",
+  "zip_mtime": 1780560475.5749252,
+  "zip_size": 921097,
+  "entry_point": "__play__.html",
+  "runtime": "pygame",
+  "deployed_at": "2026-06-04 16:53:23",
+  "doc": "1111",
+  "leader": "喻思源",
+  "work": "铁面滑索侠",
+  "title": "1111 喻思源 铁面滑索侠",
+  "python_entry": "铁面滑索侠/gaming.py",
+  "package": {
+    "source_zip": "package/铁面滑索侠-源码包.zip",
+    "built_on": "Windows",
+    "deps": [
+      "pygame",
+      "pymunk"
+    ],
+    "exe_ready": true,
+    "windows_exe": "package/铁面滑索侠-Windows.exe"
+  }
+}

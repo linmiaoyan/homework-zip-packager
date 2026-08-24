@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>飞机大战</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="game-shell">
+    <div class="hud">
+      <div>分数：<span id="score">0</span></div>
+      <div>最高分：<span id="bestScore">0</span></div>
+      <div id="hpLine">生命：<span id="hp">3</span></div>
+      <div>等级：<span id="level">1</span></div>
+      <div>怪物等级：<span id="monsterLevel">1</span></div>
+      <div>怪物经验：<span id="monsterXp">0</span>/<span id="monsterXpNeed">0</span></div>
+      <div id="statusText">状态：待开始</div>
+    </div>
+
+    <canvas id="gameCanvas" width="480" height="700"></canvas>
+
+    <div id="startPanel" class="panel visible">
+      <h1>飞机大战</h1>
+      <p class="mode-hint">单人：WASD 或方向键移动，空格/回车点射，P 暂停</p>
+      <p class="mode-hint coop-only-hint">三人：P1 WASD+空格 · P2 方向键+回车 · P3 IJKL+G（鼠标点屏全员点射）</p>
+      <div class="start-btns">
+        <button id="startSoloBtn" type="button">单人开始</button>
+        <button id="startCoopBtn" type="button">三人合作</button>
+      </div>
+    </div>
+
+    <div id="pausePanel" class="panel">
+      <h2>已暂停</h2>
+      <p>按 P 或点击继续</p>
+      <button id="resumeBtn">继续游戏</button>
+    </div>
+
+    <div id="gameOverPanel" class="panel panel-defeat">
+      <h2>游戏结束</h2>
+      <p class="panel-sub">战机被击落</p>
+      <p>本局总分：<span id="finalScore">0</span></p>
+      <p id="finalCoopRow" class="final-coop" hidden>各玩家得分：<span id="finalBreakdown"></span></p>
+      <button id="restartBtn">重新开始</button>
+    </div>
+
+    <div id="victoryPanel" class="panel panel-victory">
+      <h2>任务完成</h2>
+      <p class="panel-sub">Boss 已被击败</p>
+      <p>本局总分：<span id="victoryScore">0</span></p>
+      <p id="victoryCoopRow" class="final-coop" hidden>各玩家得分：<span id="victoryBreakdown"></span></p>
+      <button id="victoryRestartBtn">再来一局</button>
+    </div>
+
+    <div id="rewardPanel" class="panel">
+      <h2 id="rewardTitle">选择奖励</h2>
+      <div id="rewardOptions">
+        <!-- 奖励选项将通过JavaScript动态添加 -->
+      </div>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>

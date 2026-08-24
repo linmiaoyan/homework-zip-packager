@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>高二11班冒险游戏</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #1a237e, #3949ab, #536dfe);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            overflow: hidden;
+        }
+        #gameCanvas {
+            background: linear-gradient(45deg, #f5f5f5, #e0e0e0);
+            border: 3px solid #1a237e;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(26, 35, 126, 0.5);
+            display: none;
+        }
+        #gameUI {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #1a237e;
+            font-size: 18px;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
+            display: none;
+        }
+        #gameOver {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(26, 35, 126, 0.95);
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            color: white;
+            display: none;
+            box-shadow: 0 0 30px rgba(26, 35, 126, 0.8);
+        }
+        #gameOver h2 {
+            color: #ffeb3b;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+        #gameOver p {
+            font-size: 18px;
+            margin-bottom: 30px;
+        }
+        button {
+            padding: 12px 24px;
+            font-size: 18px;
+            margin-top: 20px;
+            cursor: pointer;
+            background: linear-gradient(45deg, #ff9800, #ff5722);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            background: linear-gradient(45deg, #ff5722, #ff9800);
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(255, 152, 0, 0.6);
+        }
+        
+        /* 关卡选择界面样式 */
+        #levelSelect {
+            background: rgba(26, 35, 126, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            color: white;
+            box-shadow: 0 0 40px rgba(26, 35, 126, 0.9);
+            max-width: 600px;
+        }
+        #levelSelect h1 {
+            color: #ffeb3b;
+            font-size: 36px;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        #levelSelect p {
+            font-size: 18px;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+        .levels-container {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .level-btn {
+            width: 80px;
+            height: 80px;
+            font-size: 24px;
+            font-weight: bold;
+            border-radius: 12px;
+            border: 3px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .level-btn.normal {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+        }
+        .level-btn.elite {
+            background: linear-gradient(45deg, #FFC107, #FF9800);
+            color: #1a237e;
+        }
+        .level-btn.boss {
+            background: linear-gradient(45deg, #FF5722, #f44336);
+            color: white;
+        }
+        .level-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+        }
+        .level-btn.selected {
+            border-color: #ffeb3b;
+            box-shadow: 0 0 15px rgba(255, 235, 59, 0.8);
+            transform: scale(1.05);
+        }
+        .level-theme {
+            font-size: 12px;
+            margin-top: 5px;
+            opacity: 0.8;
+        }
+        #startGameBtn {
+            padding: 15px 40px;
+            font-size: 20px;
+            background: linear-gradient(45deg, #ff9800, #ff5722);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+        #startGameBtn:hover {
+            background: linear-gradient(45deg, #ff5722, #ff9800);
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 152, 0, 0.8);
+        }
+        #backToMenuBtn {
+            padding: 10px 20px;
+            font-size: 14px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+        #backToMenuBtn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        .level-info {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px 25px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+        .level-info h3 {
+            color: #ffeb3b;
+            margin-bottom: 10px;
+        }
+        .level-info p {
+            margin: 5px 0;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 关卡选择界面 -->
+    <div id="levelSelect">
+        <h1>🎮 高二11班冒险游戏</h1>
+        <p>选择一个关卡开始你的冒险之旅！</p>
+        <div class="levels-container" id="levelsContainer"></div>
+        <div class="level-info" id="levelInfo">
+            <h3 id="selectedLevelName">关卡信息</h3>
+            <p id="levelTheme">主题: </p>
+            <p id="levelType">类型: </p>
+            <p id="levelEnemies">敌人数量: </p>
+        </div>
+        <button id="startGameBtn">开始游戏</button>
+    </div>
+    
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <div id="gameUI">
+        <div>生命值: <span id="health">100</span></div>
+        <div>分数: <span id="score">0</span></div>
+        <div>房间: <span id="room">1</span></div>
+        <div>位移技能: <span id="dashCooldown">就绪</span></div>
+        <div>当前武器: <span id="currentWeapon">普通射击</span></div>
+        <div style="font-size: 12px; color: #888; margin-top: 10px;">
+            WASD移动 | 空格/点击射击 | 右键位移 | 1/2/3或Q切换武器
+        </div>
+    </div>
+    <div id="gameOver">
+        <h2>游戏结束</h2>
+        <p>最终分数: <span id="finalScore">0</span></p>
+        <button onclick="restartGame()">重新开始</button>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>游戏展厅 — 作业压缩包收集工具</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <main class="container container-wide">
+    <header class="header header-row">
+      <div>
+        <h1>游戏展厅</h1>
+        <p>自动解析「收集」目录中的压缩包，在线体验学生作品；体验满 1 分钟后可评分。</p>
+      </div>
+      <div class="header-actions">
+        <button id="admin-open" type="button" class="ghost admin-entry">管理员</button>
+        <a class="nav-link" href="/">返回提交页</a>
+      </div>
+    </header>
+
+    <section class="card gallery-toolbar">
+      <div class="gallery-toolbar-main">
+        <span class="live-dot"></span>
+        <span id="gallery-status">正在扫描并部署游戏…</span>
+      </div>
+      <button id="refresh-gallery" type="button" class="ghost">重新部署</button>
+    </section>
+
+    <section id="gallery-grid" class="gallery-grid">
+      <div class="gallery-loading muted">加载中…</div>
+    </section>
+  </main>
+
+  <div id="admin-modal" class="modal" hidden>
+    <div class="modal-panel admin-modal-panel">
+      <div class="modal-header">
+        <h2>管理员 · 项目简介</h2>
+        <button id="admin-close" type="button" class="ghost">关闭</button>
+      </div>
+
+      <form id="admin-login-form" class="admin-login">
+        <label class="field">
+          <span>管理员密码</span>
+          <input id="admin-password" type="password" placeholder="请输入密码" autocomplete="current-password">
+        </label>
+        <button type="submit" class="btn-primary">进入管理</button>
+        <p id="admin-login-error" class="status error"></p>
+      </form>
+
+      <section id="admin-panel" hidden>
+        <div class="admin-toolbar">
+          <p id="admin-status" class="status"></p>
+        </div>
+        <div id="admin-list" class="admin-list"></div>
+      </section>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='gallery.js') }}"></script>
+</body>
+</html>

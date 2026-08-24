@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>作业压缩包收集工具</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <main class="container">
+    <header class="header header-row">
+      <div>
+        <h1>作业压缩包收集工具</h1>
+        <p>填写信息后，将文件夹拖入下方区域即可自动打包；压缩包按「文档号 组长姓名 作品名称」命名。</p>
+      </div>
+      <a class="nav-link" href="/gallery">游戏展厅</a>
+    </header>
+
+    <section class="card server-info">
+      <div class="server-info-label">局域网访问地址</div>
+      <a class="server-info-url" href="{{ server_url }}" target="_blank" rel="noopener">{{ server_url }}</a>
+      <div class="server-info-meta">本机 IP：<strong>{{ server_ip }}</strong> · 端口 <strong>{{ server_port }}</strong></div>
+    </section>
+
+    <form id="pack-form" class="card">
+      <label class="field">
+        <span>组长姓名</span>
+        <input id="leader" name="leader" type="text" placeholder="张三" autocomplete="name">
+      </label>
+
+      <label class="field">
+        <span>作品名称</span>
+        <input id="work" name="work" type="text" placeholder="XX游戏" autocomplete="off">
+      </label>
+
+      <label class="field">
+        <span>项目简介</span>
+        <textarea id="description" name="description" rows="3" placeholder="简要描述游戏内容、玩法或亮点（选填）"></textarea>
+      </label>
+
+      <section class="preview card-inner">
+        <div class="preview-label">压缩包命名预览（实时更新）</div>
+        <div id="preview" class="preview-name muted">（请填写组长姓名和作品名称）</div>
+      </section>
+
+      <label id="upload-area" class="upload-area" for="files">
+        <input id="files" name="files" type="file" webkitdirectory directory multiple hidden>
+        <div class="upload-icon">📁</div>
+        <div class="upload-title">拖拽文件夹到此处</div>
+        <div id="file-summary" class="upload-hint">支持拖拽文件夹到此处，或点击选择项目目录；识别为文件夹后将自动打包</div>
+      </label>
+
+      <div class="actions">
+        <button id="submit-btn" type="submit" disabled>手动打包并下载</button>
+      </div>
+
+      <p id="status" class="status" aria-live="polite"></p>
+    </form>
+
+    <section class="card collect-card">
+      <div class="collect-header">
+        <div>
+          <h2>已提交文件</h2>
+          <div class="collect-subtitle">
+            <span class="live-dot"></span>
+            实时更新 · <span id="collect-count">0 个文件</span>
+          </div>
+        </div>
+        <button id="refresh-collect" type="button" class="ghost">刷新</button>
+      </div>
+      <ul id="collect-list" class="collect-list">
+        <li class="muted">加载中…</li>
+      </ul>
+    </section>
+  </main>
+
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>死神VS火影游戏</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        
+        #game-container {
+            position: relative;
+        }
+        
+        canvas {
+            background-color: #87CEEB;
+            display: block;
+            border: 2px solid #fff;
+        }
+        
+        #ui {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            color: white;
+            font-size: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        #timer {
+            font-weight: bold;
+        }
+        
+        #health-bars {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .health-bar {
+            width: 200px;
+            height: 20px;
+            background-color: #555;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .health {
+            height: 100%;
+            background-color: #ff4444;
+            transition: width 0.3s ease;
+        }
+        
+        #player1-health {
+            background-color: #4488ff;
+        }
+        
+        #player2-health {
+            background-color: #ff4444;
+        }
+        
+        #stamina-bars {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-top: 10px;
+        }
+        
+        .stamina-bar {
+            width: 200px;
+            height: 10px;
+            background-color: #555;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .stamina {
+            height: 100%;
+            background-color: #4CAF50;
+            transition: width 0.3s ease;
+        }
+        
+        #energy-bars {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .energy-bar {
+            width: 200px;
+            height: 10px;
+            background-color: #555;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .energy {
+            height: 100%;
+            background-color: #ffff00;
+            transition: width 0.3s ease;
+        }
+        
+        #character-select {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            color: white;
+            z-index: 1000;
+        }
+        
+        #character-select h2 {
+            margin-bottom: 30px;
+            font-size: 30px;
+        }
+        
+        .character-list {
+            display: flex;
+            gap: 40px;
+            margin-bottom: 30px;
+        }
+        
+        .character {
+            cursor: pointer;
+            text-align: center;
+            transition: transform 0.2s ease;
+        }
+        
+        .character:hover {
+            transform: scale(1.1);
+        }
+        
+        .character-image {
+            width: 100px;
+            height: 100px;
+            background-color: #555;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+        }
+        
+        .character-name {
+            font-size: 16px;
+        }
+        
+        #start-game {
+            padding: 15px 40px;
+            font-size: 18px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        
+        #start-game:hover {
+            background-color: #45a049;
+        }
+        
+        #game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.9);
+            padding: 50px;
+            border-radius: 20px;
+            text-align: center;
+            color: white;
+            z-index: 1000;
+            display: none;
+        }
+        
+        #game-over h2 {
+            font-size: 40px;
+            margin-bottom: 20px;
+        }
+        
+        #winner {
+            font-size: 30px;
+            margin-bottom: 30px;
+        }
+        
+        #restart-game {
+            padding: 15px 40px;
+            font-size: 18px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        
+        #restart-game:hover {
+            background-color: #45a049;
+        }
+        
+        #controls {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            color: white;
+            font-size: 12px;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="gameCanvas" width="800" height="400"></canvas>
+        <div id="ui">
+            <div>
+                <div id="health-bars">
+                    <div class="health-bar">
+                        <div id="player1-health" class="health" style="width: 100%"></div>
+                    </div>
+                    <div class="health-bar">
+                        <div id="player2-health" class="health" style="width: 100%"></div>
+                    </div>
+                </div>
+                <div id="stamina-bars">
+                    <div class="stamina-bar">
+                        <div id="player1-stamina" class="stamina" style="width: 100%"></div>
+                    </div>
+                    <div class="stamina-bar">
+                        <div id="player2-stamina" class="stamina" style="width: 100%"></div>
+                    </div>
+                </div>
+            </div>
+            <div id="timer">60</div>
+            <div id="energy-bars">
+                <div class="energy-bar">
+                    <div id="player1-energy" class="energy" style="width: 0%"></div>
+                </div>
+                <div class="energy-bar">
+                    <div id="player2-energy" class="energy" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="character-select">
+            <h2>选择角色</h2>
+            <div class="character-list">
+                <div class="character" data-character="ichigo">
+                    <div class="character-image">👺</div>
+                    <div class="character-name">黑崎一护</div>
+                </div>
+                <div class="character" data-character="naruto">
+                    <div class="character-image"><img src="大头照.jpg" width="100" height="100" style="border-radius: 10px; object-fit: cover;"></div>
+                    <div class="character-name">漩涡鸣人</div>
+                </div>
+            </div>
+            <button id="start-game">开始游戏</button>
+        </div>
+        
+        <div id="game-over">
+            <h2>游戏结束</h2>
+            <div id="winner"></div>
+            <button id="restart-game">重新开始</button>
+        </div>
+        
+        <div id="controls">
+            <p>玩家1: WASD移动, J攻击, K跳跃, I技能, U远程攻击, S格挡, L突进</p>
+            <p>玩家2: 方向键移动, 1攻击, 2跳跃, 5技能, 4远程攻击, 下方向键格挡, 3突进</p>
+        </div>
+    </div>
+    
+    <script>
+        // 游戏状态
+        const gameState = {
+            currentScreen: 'characterSelect',
+            selectedCharacters: {
+                player1: null,
+                player2: null
+            },
+            gameStarted: false,
+            timeLeft: 60,
+            players: {
+                player1: {
+                    x: 200,
+                    y: 300,
+                    width: 50,
+                    height: 50,
+                    health: 2000,
+                    maxHealth: 2000,
+                    energy: 0,
+                    stamina: 100,
+                    maxStamina: 100,
+                    speed: 5,
+                    jumpSpeed: -15,
+                    velocityY: 0,
+                    direction: 1,
+                    isAttacking: false,
+                    isSkillAttacking: false,
+                    attackFrame: 0,
+                    attackTimer: 0,
+                    isBlocking: false,
+                    isJumping: false,
+                    isAirborne: false,
+                    isStunned: false,
+                    isDashing: false,
+                    dashCooldown: 0,
+                    dashDistance: 0,
+                    dashSpeed: 0,
+                    attackCooldown: 0,
+                    blockCooldown: 0,
+                    stunCooldown: 0,
+                    staminaRegenTimer: 0,
+                    doubleJumpUsed: false,
+                    jumpPressed: false,
+                    rangedAttackCooldown: 0,
+                    projectiles: [],
+                    character: null
+                },
+                player2: {
+                    x: 550,
+                    y: 300,
+                    width: 50,
+                    height: 50,
+                    health: 2000,
+                    maxHealth: 2000,
+                    energy: 0,
+                    stamina: 100,
+                    maxStamina: 100,
+                    speed: 5,
+                    jumpSpeed: -15,
+                    velocityY: 0,
+                    direction: -1,
+                    isAttacking: false,
+                    isSkillAttacking: false,
+                    attackFrame: 0,
+                    attackTimer: 0,
+                    isBlocking: false,
+                    isJumping: false,
+                    isAirborne: false,
+                    isStunned: false,
+                    isDashing: false,
+                    dashCooldown: 0,
+                    dashDistance: 0,
+                    dashSpeed: 0,
+                    attackCooldown: 0,
+                    blockCooldown: 0,
+                    stunCooldown: 0,
+                    staminaRegenTimer: 0,
+                    doubleJumpUsed: false,
+                    jumpPressed: false,
+                    rangedAttackCooldown: 0,
+                    projectiles: [],
+                    character: null
+                }
+            },
+            keys: {
+                player1: {
+                    up: false,
+                    down: false,
+                    left: false,
+                    right: false,
+                    attack: false,
+                    jump: false,
+                    skill: false,
+                    block: false,
+                    dash: false,
+                    rangedAttack: false
+                },
+                player2: {
+                    up: false,
+                    down: false,
+                    left: false,
+                    right: false,
+                    attack: false,
+                    jump: false,
+                    skill: false,
+                    block: false,
+                    dash: false,
+                    rangedAttack: false
+                }
+            },
+            gravity: 0.8,
+            groundLevel: 300
+        };
+        
+        // 预加载图片
+        const images = {
+            naruto: {
+                idle: new Image(),
+                attack: [new Image(), new Image(), new Image()],
+                dash: new Image()
+            },
+            ichigo: {
+                idle: new Image(),
+                attack: [new Image(), new Image(), new Image()],
+                dash: new Image(),
+                block: new Image()
+            }
+        };
+        
+        // 加载图片
+        images.naruto.idle.src = '1战立.png';
+        images.naruto.attack[0].src = '鸣人1A/处理鸣人图片 (1).png';
+        images.naruto.attack[1].src = '鸣人1A/处理鸣人图片 (2).png';
+        images.naruto.attack[2].src = '鸣人1A/处理鸣人图片 (3).png';
+        images.naruto.dash.src = '鸣人突进.png';
+        images.ichigo.idle.src = '黑崎一护.png';
+        images.ichigo.attack[0].src = '一护1A/1.png';
+        images.ichigo.attack[1].src = '一护1A/2.png';
+        images.ichigo.attack[2].src = '一护1A/3.png';
+        images.ichigo.dash.src = '一护突进.png';
+        images.ichigo.block.src = '一护防御.png';
+        
+        // 攻击动画配置
+        const attackAnimation = {
+            naruto: {
+                frameCount: 3,
+                frameDuration: 8,
+                attackFrame: 1
+            },
+            ichigo: {
+                frameCount: 3,
+                frameDuration: 8,
+                attackFrame: 1
+            }
+        };
+        
+        // 角色数据
+        const characters = {
+            ichigo: {
+                name: '黑崎一护',
+                color: '#4488ff',
+                attackDamage: 100,
+                skillDamage: 250,
+                skillEnergy: 50
+            },
+            naruto: {
+                name: '漩涡鸣人',
+                color: '#ff4444',
+                attackDamage: 80,
+                skillDamage: 300,
+                skillEnergy: 60
+            }
+        };
+        
+        // 获取DOM元素
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const characterSelect = document.getElementById('character-select');
+        const startGameBtn = document.getElementById('start-game');
+        const gameOver = document.getElementById('game-over');
+        const winnerDisplay = document.getElementById('winner');
+        const restartGameBtn = document.getElementById('restart-game');
+        const timerDisplay = document.getElementById('timer');
+        const player1Health = document.getElementById('player1-health');
+        const player2Health = document.getElementById('player2-health');
+        const player1Stamina = document.getElementById('player1-stamina');
+        const player2Stamina = document.getElementById('player2-stamina');
+        const player1Energy = document.getElementById('player1-energy');
+        const player2Energy = document.getElementById('player2-energy');
+        
+        // 初始化事件监听
+        function initEventListeners() {
+            // 角色选择
+            document.querySelectorAll('.character').forEach(character => {
+                character.addEventListener('click', function() {
+                    if (!gameState.selectedCharacters.player1) {
+                        gameState.selectedCharacters.player1 = this.dataset.character;
+                        this.style.border = '2px solid blue';
+                    } else if (!gameState.selectedCharacters.player2) {
+                        gameState.selectedCharacters.player2 = this.dataset.character;
+                        this.style.border = '2px solid red';
+                    }
+                });
+            });
+            
+            // 开始游戏
+            startGameBtn.addEventListener('click', function() {
+                if (gameState.selectedCharacters.player1 && gameState.selectedCharacters.player2) {
+                    gameState.players.player1.character = gameState.selectedCharacters.player1;
+                    gameState.players.player2.character = gameState.selectedCharacters.player2;
+                    characterSelect.style.display = 'none';
+                    gameState.currentScreen = 'game';
+                    gameState.gameStarted = true;
+                    startGameLoop();
+                    startTimer();
+                }
+            });
+            
+            // 重新开始游戏
+            restartGameBtn.addEventListener('click', function() {
+                resetGame();
+                gameOver.style.display = 'none';
+                characterSelect.style.display = 'block';
+                gameState.currentScreen = 'characterSelect';
+            });
+            
+            // 键盘事件
+            window.addEventListener('keydown', function(e) {
+                // 玩家1控制
+                if (e.key === 'w') gameState.keys.player1.up = true;
+                if (e.key === 's') gameState.keys.player1.block = true;  // S键改为防御
+                if (e.key === 'a') gameState.keys.player1.left = true;
+                if (e.key === 'd') gameState.keys.player1.right = true;
+                if (e.key === 'j') gameState.keys.player1.attack = true;
+                if (e.key === 'k') gameState.keys.player1.jump = true;
+                if (e.key === 'i') gameState.keys.player1.skill = true;
+                if (e.key === 'l') gameState.keys.player1.dash = true;   // L键改为突进
+                if (e.key === 'u') gameState.keys.player1.rangedAttack = true;
+                
+                // 玩家2控制
+                if (e.key === 'ArrowUp') gameState.keys.player2.up = true;
+                if (e.key === 'ArrowDown') gameState.keys.player2.block = true;  // 向下键改为防御
+                if (e.key === 'ArrowLeft') gameState.keys.player2.left = true;
+                if (e.key === 'ArrowRight') gameState.keys.player2.right = true;
+                if (e.key === '1') gameState.keys.player2.attack = true;
+                if (e.key === '2') gameState.keys.player2.jump = true;
+                if (e.key === '5') gameState.keys.player2.skill = true;
+                if (e.key === '6') gameState.keys.player2.block = true;
+                if (e.key === '4') gameState.keys.player2.rangedAttack = true;
+                if (e.key === '3') gameState.keys.player2.dash = true;   // 3键改为突进
+            });
+            
+            window.addEventListener('keyup', function(e) {
+                // 玩家1控制
+                if (e.key === 'w') gameState.keys.player1.up = false;
+                if (e.key === 's') gameState.keys.player1.block = false;  // S键改为防御
+                if (e.key === 'a') gameState.keys.player1.left = false;
+                if (e.key === 'd') gameState.keys.player1.right = false;
+                if (e.key === 'j') gameState.keys.player1.attack = false;
+                if (e.key === 'k') gameState.keys.player1.jump = false;
+                if (e.key === 'i') gameState.keys.player1.skill = false;
+                if (e.key === 'l') gameState.keys.player1.dash = false;   // L键改为突进
+                if (e.key === 'u') gameState.keys.player1.rangedAttack = false;
+                
+                // 玩家2控制
+                if (e.key === 'ArrowUp') gameState.keys.player2.up = false;
+                if (e.key === 'ArrowDown') gameState.keys.player2.block = false;  // 向下键改为防御
+                if (e.key === 'ArrowLeft') gameState.keys.player2.left = false;
+                if (e.key === 'ArrowRight') gameState.keys.player2.right = false;
+                if (e.key === '1') gameState.keys.player2.attack = false;
+                if (e.key === '2') gameState.keys.player2.jump = false;
+                if (e.key === '5') gameState.keys.player2.skill = false;
+                if (e.key === '6') gameState.keys.player2.block = false;
+                if (e.key === '4') gameState.keys.player2.rangedAttack = false;
+            });
+        }
+        
+        // 游戏主循环
+        function gameLoop() {
+            if (!gameState.gameStarted) return;
+            
+            // 清空画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制背景
+            drawBackground();
+            
+            // 更新游戏状态
+            updateGame();
+            
+            // 绘制游戏
+            drawGame();
+            
+            // 继续循环
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // 绘制背景
+        function drawBackground() {
+            // 绘制天空
+            ctx.fillStyle = '#87CEEB';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制地面
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(0, gameState.groundLevel + 50, canvas.width, canvas.height - gameState.groundLevel - 50);
+            
+            // 绘制树木
+            ctx.fillStyle = '#228B22';
+            ctx.fillRect(100, 200, 30, 150);
+            ctx.fillStyle = '#006400';
+            ctx.beginPath();
+            ctx.arc(115, 150, 40, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = '#228B22';
+            ctx.fillRect(700, 200, 30, 150);
+            ctx.fillStyle = '#006400';
+            ctx.beginPath();
+            ctx.arc(715, 150, 40, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 绘制房子
+            ctx.fillStyle = '#CD853F';
+            ctx.fillRect(350, 200, 100, 150);
+            ctx.fillStyle = '#A0522D';
+            ctx.fillRect(380, 250, 40, 100);
+            ctx.fillStyle = '#8B4513';
+            ctx.beginPath();
+            ctx.moveTo(350, 200);
+            ctx.lineTo(400, 150);
+            ctx.lineTo(450, 200);
+            ctx.fill();
+        }
+        
+        // 更新游戏状态
+        function updateGame() {
+            // 先检查攻击碰撞（设置僵直状态）
+            checkAttacks();
+            
+            // 更新玩家1（此时isStunned已设置，可以打断攻击）
+            updatePlayer('player1');
+            
+            // 更新玩家2（此时isStunned已设置，可以打断攻击）
+            updatePlayer('player2');
+            
+            // 检查角色碰撞
+            checkPlayerCollision();
+            
+            // 更新子弹
+            updateProjectiles('player1');
+            updateProjectiles('player2');
+            
+            // 更新UI
+            updateUI();
+        }
+        
+        // 更新子弹
+        function updateProjectiles(playerId) {
+            const player = gameState.players[playerId];
+            const otherPlayerId = playerId === 'player1' ? 'player2' : 'player1';
+            const otherPlayer = gameState.players[otherPlayerId];
+            
+            // 更新子弹位置
+            player.projectiles = player.projectiles.filter(projectile => {
+                if (!projectile.active) return false;
+                
+                // 移动子弹
+                projectile.x += projectile.speed;
+                
+                // 检查是否超出屏幕
+                if (projectile.x < 0 || projectile.x > canvas.width) {
+                    return false;
+                }
+                
+                // 检查是否击中其他玩家
+                if (checkCollision(projectile, otherPlayer) && !otherPlayer.isStunned) {
+                    // 检查是否在格挡
+                    if (otherPlayer.isBlocking && otherPlayer.stamina > 0) {
+                        // 格挡成功，减少体力
+                        otherPlayer.stamina -= 10;
+                        if (otherPlayer.stamina < 0) otherPlayer.stamina = 0;
+                        otherPlayer.staminaRegenTimer = 0;
+                    } else {
+                        // 击中成功，造成伤害并添加僵直
+                        otherPlayer.health -= projectile.damage;
+                        if (otherPlayer.health < 0) otherPlayer.health = 0;
+                        
+                        // 添加僵直
+                        otherPlayer.isStunned = true;
+                        otherPlayer.stunCooldown = 15;
+                    }
+                    return false;
+                }
+                
+                return true;
+            });
+        }
+        
+        // 更新单个玩家
+        function updatePlayer(playerId) {
+            const player = gameState.players[playerId];
+            const keys = gameState.keys[playerId];
+            
+            // 如果被僵直，不能移动或攻击
+            if (player.isStunned) {
+                player.stunCooldown--;
+                if (player.stunCooldown <= 0) {
+                    player.isStunned = false;
+                }
+                return;
+            }
+            
+            // 移动（攻击时不能移动）
+            if (keys.left && !player.isBlocking && !player.isAttacking) {
+                player.x -= player.speed;
+                player.direction = -1;
+            }
+            if (keys.right && !player.isBlocking && !player.isAttacking) {
+                player.x += player.speed;
+                player.direction = 1;
+            }
+            
+            // 边界检查
+            if (player.x < 0) player.x = 0;
+            if (player.x > canvas.width - player.width) player.x = canvas.width - player.width;
+            
+            // 重力
+            player.velocityY += gameState.gravity;
+            player.y += player.velocityY;
+            
+            // 地面碰撞
+            if (player.y >= gameState.groundLevel) {
+                player.y = gameState.groundLevel;
+                player.velocityY = 0;
+                player.isAirborne = false;
+                player.isJumping = false;
+            } else {
+                player.isAirborne = true;
+            }
+            
+            // 处理跳跃键输入
+            if (keys.jump && !player.jumpPressed && !player.isBlocking) {
+                player.jumpPressed = true;
+                if (!player.isAirborne) {
+                    // 第一次跳跃
+                    player.velocityY = player.jumpSpeed;
+                    player.isJumping = true;
+                    player.doubleJumpUsed = false;
+                } else if (!player.doubleJumpUsed) {
+                    // 二段跳
+                    player.velocityY = player.jumpSpeed;
+                    player.doubleJumpUsed = true;
+                }
+            } else if (!keys.jump) {
+                player.jumpPressed = false;
+            }
+            
+            // 远程攻击
+            if (keys.rangedAttack && player.rangedAttackCooldown === 0 && !player.isBlocking) {
+                // 创建子弹
+                player.projectiles.push({
+                    x: player.x + (player.direction > 0 ? player.width : -20),
+                    y: player.y + player.height / 2 - 5,
+                    width: 20,
+                    height: 10,
+                    speed: 10 * player.direction,
+                    damage: 50,
+                    active: true
+                });
+                player.rangedAttackCooldown = 40; // 冷却时间
+                player.energy += 5; // 增加能量
+                if (player.energy > 100) player.energy = 100;
+            }
+            
+            // 远程攻击冷却
+            if (player.rangedAttackCooldown > 0) {
+                player.rangedAttackCooldown--;
+            }
+            
+            // 突进位移
+            if (keys.dash && player.dashCooldown === 0 && !player.isAttacking && !player.isBlocking && player.stamina >= 25) {
+                player.isDashing = true;
+                player.dashCooldown = 30; // 缩短突进冷却时间
+                player.stamina -= 25; // 消耗四分之一体力
+                player.staminaRegenTimer = 0;
+                player.dashDistance = 120; // 突进总距离
+                player.dashSpeed = 15; // 突进速度（每帧移动距离）
+            }
+            
+            // 突进过程（逐帧移动）
+            if (player.isDashing && player.dashDistance > 0) {
+                const moveDistance = Math.min(player.dashSpeed, player.dashDistance);
+                player.x += player.direction * moveDistance;
+                player.dashDistance -= moveDistance;
+                
+                // 边界检查
+                if (player.x < 0) {
+                    player.x = 0;
+                    player.dashDistance = 0;
+                }
+                if (player.x > canvas.width - player.width) {
+                    player.x = canvas.width - player.width;
+                    player.dashDistance = 0;
+                }
+                
+                // 突进结束
+                if (player.dashDistance <= 0) {
+                    player.isDashing = false;
+                }
+            }
+            
+            // 突进冷却
+            if (player.dashCooldown > 0) {
+                player.dashCooldown--;
+            }
+            
+            // 攻击冷却
+            if (player.attackCooldown > 0) {
+                player.attackCooldown--;
+                if (player.attackCooldown === 0) {
+                    player.isAttacking = false;
+                }
+            }
+            
+            // 格挡
+            if (keys.block && player.stamina > 0 && !player.isAttacking && !player.isAirborne) {
+                player.isBlocking = true;
+            } else {
+                player.isBlocking = false;
+            }
+            
+            // 体力恢复
+            if (!player.isBlocking) {
+                player.staminaRegenTimer++;
+                if (player.staminaRegenTimer >= 60) { // 1秒
+                    player.stamina += 10;
+                    if (player.stamina > player.maxStamina) {
+                        player.stamina = player.maxStamina;
+                    }
+                    player.staminaRegenTimer = 0;
+                }
+            }
+            
+            // 普通攻击
+            if (keys.attack && !player.isAttacking && player.attackCooldown === 0 && !player.isBlocking) {
+                player.isAttacking = true;
+                player.isSkillAttacking = false;
+                player.attackFrame = 0;
+                player.attackTimer = 0;
+                player.energy += 10;
+                if (player.energy > 100) player.energy = 100;
+            }
+            
+            // 技能攻击
+            if (keys.skill && player.energy >= characters[player.character].skillEnergy && !player.isAttacking && player.attackCooldown === 0 && !player.isBlocking) {
+                player.isAttacking = true;
+                player.isSkillAttacking = true;
+                player.attackFrame = 0;
+                player.attackTimer = 0;
+                player.energy -= characters[player.character].skillEnergy;
+            }
+            
+            // 更新攻击动画
+            if (player.isAttacking) {
+                // 僵直时立即打断攻击
+                if (player.isStunned) {
+                    player.isAttacking = false;
+                    player.isSkillAttacking = false;
+                    player.attackFrame = 0;
+                    player.attackTimer = 0;
+                    player.attackCooldown = 30; // 被打断后添加冷却时间
+                    return;
+                }
+                
+                player.attackTimer++;
+                const animConfig = attackAnimation[player.character];
+                if (animConfig) {
+                    // 计算当前帧
+                    player.attackFrame = Math.floor(player.attackTimer / animConfig.frameDuration);
+                    
+                    // 检查攻击是否结束
+                    if (player.attackFrame >= animConfig.frameCount) {
+                        player.isAttacking = false;
+                        player.attackFrame = 0;
+                        player.attackTimer = 0;
+                        player.attackCooldown = 20; // 攻击后冷却
+                    }
+                } else {
+                    // 没有动画配置的角色，保持旧逻辑
+                    player.attackTimer++;
+                    if (player.attackTimer >= 30) {
+                        player.isAttacking = false;
+                        player.attackTimer = 0;
+                        player.attackCooldown = 20;
+                    }
+                }
+            }
+        }
+        
+        // 角色碰撞检测
+        function checkPlayerCollision() {
+            const player1 = gameState.players.player1;
+            const player2 = gameState.players.player2;
+            
+            // 检查是否碰撞（突进时不处理碰撞）
+            if (checkCollision(player1, player2) && !player1.isDashing && !player2.isDashing) {
+                // 计算重叠量
+                const overlapX = Math.min(
+                    player1.x + player1.width,
+                    player2.x + player2.width
+                ) - Math.max(player1.x, player2.x);
+                
+                const overlapY = Math.min(
+                    player1.y + player1.height,
+                    player2.y + player2.height
+                ) - Math.max(player1.y, player2.y);
+                
+                // 只处理水平碰撞
+                if (overlapX > 0) {
+                    // 普通碰撞，互相推开
+                    if (player1.x < player2.x) {
+                        player1.x -= overlapX / 2;
+                        player2.x += overlapX / 2;
+                    } else {
+                        player1.x += overlapX / 2;
+                        player2.x -= overlapX / 2;
+                    }
+                    
+                    // 边界检查
+                    if (player1.x < 0) player1.x = 0;
+                    if (player1.x > canvas.width - player1.width) player1.x = canvas.width - player1.width;
+                    if (player2.x < 0) player2.x = 0;
+                    if (player2.x > canvas.width - player2.width) player2.x = canvas.width - player2.width;
+                }
+            }
+        }
+        
+        // 检查攻击碰撞
+        function checkAttacks() {
+            const player1 = gameState.players.player1;
+            const player2 = gameState.players.player2;
+            
+            // 玩家1攻击玩家2（只有攻击冷却为0时才能造成伤害）
+            if (player1.isAttacking && player1.attackCooldown === 0) {
+                const animConfig1 = attackAnimation[player1.character];
+                // 只在特定帧造成伤害（有动画配置的角色）
+                const shouldHit1 = animConfig1 
+                    ? player1.attackFrame === animConfig1.attackFrame && player1.attackTimer % animConfig1.frameDuration === 0
+                    : true;
+                
+                if (shouldHit1) {
+                    // 创建攻击范围（向前延伸）
+                    const attackRange1 = {
+                        x: player1.direction > 0 ? player1.x + player1.width : player1.x - player1.width,
+                        y: player1.y,
+                        width: player1.width,
+                        height: player1.height
+                    };
+                    
+                    if (checkCollision(attackRange1, player2)) {
+                        // 检查玩家2是否在格挡或突进（突进无敌）
+                        if (player2.isBlocking && player2.stamina > 0) {
+                            // 格挡成功，减少体力
+                            player2.stamina -= 33;
+                            if (player2.stamina < 0) player2.stamina = 0;
+                            player2.staminaRegenTimer = 0;
+                        } else if (!player2.isStunned && !player2.isDashing) {
+                            // 攻击成功，造成伤害并添加僵直（突进时无敌）
+                            if (player1.isSkillAttacking) {
+                                player2.health -= characters[player1.character].skillDamage;
+                            } else {
+                                player2.health -= characters[player1.character].attackDamage;
+                            }
+                            if (player2.health < 0) player2.health = 0;
+                            
+                            // 添加僵直
+                            player2.isStunned = true;
+                            player2.stunCooldown = 20;
+                        }
+                    }
+                }
+            }
+            
+            // 玩家2攻击玩家1（只有攻击冷却为0时才能造成伤害）
+            if (player2.isAttacking && player2.attackCooldown === 0) {
+                const animConfig2 = attackAnimation[player2.character];
+                // 只在特定帧造成伤害（有动画配置的角色）
+                const shouldHit2 = animConfig2 
+                    ? player2.attackFrame === animConfig2.attackFrame && player2.attackTimer % animConfig2.frameDuration === 0
+                    : true;
+                
+                if (shouldHit2) {
+                    // 创建攻击范围（向前延伸）
+                    const attackRange2 = {
+                        x: player2.direction > 0 ? player2.x + player2.width : player2.x - player2.width,
+                        y: player2.y,
+                        width: player2.width,
+                        height: player2.height
+                    };
+                    
+                    if (checkCollision(attackRange2, player1)) {
+                        // 检查玩家1是否在格挡或突进（突进无敌）
+                        if (player1.isBlocking && player1.stamina > 0) {
+                            // 格挡成功，减少体力
+                            player1.stamina -= 33;
+                            if (player1.stamina < 0) player1.stamina = 0;
+                            player1.staminaRegenTimer = 0;
+                        } else if (!player1.isStunned && !player1.isDashing) {
+                            // 攻击成功，造成伤害并添加僵直（突进时无敌）
+                            if (player2.isSkillAttacking) {
+                                player1.health -= characters[player2.character].skillDamage;
+                            } else {
+                                player1.health -= characters[player2.character].attackDamage;
+                            }
+                            if (player1.health < 0) player1.health = 0;
+                            
+                            // 添加僵直
+                            player1.isStunned = true;
+                            player1.stunCooldown = 20;
+                        }
+                    }
+                }
+            }
+            
+            // 检查血量是否为零
+            if (player1.health <= 0) {
+                endGame('player2');
+            } else if (player2.health <= 0) {
+                endGame('player1');
+            }
+        }
+        
+        // 检查碰撞
+        function checkCollision(playerA, playerB) {
+            return (
+                playerA.x < playerB.x + playerB.width &&
+                playerA.x + playerA.width > playerB.x &&
+                playerA.y < playerB.y + playerB.height &&
+                playerA.y + playerA.height > playerB.y
+            );
+        }
+        
+        // 绘制游戏
+        function drawGame() {
+            // 绘制子弹
+            drawProjectiles('player1');
+            drawProjectiles('player2');
+            
+            // 绘制玩家1
+            drawPlayer('player1');
+            
+            // 绘制玩家2
+            drawPlayer('player2');
+        }
+        
+        // 绘制子弹
+        function drawProjectiles(playerId) {
+            const player = gameState.players[playerId];
+            const character = characters[player.character];
+            
+            player.projectiles.forEach(projectile => {
+                if (projectile.active) {
+                    ctx.fillStyle = character.color;
+                    ctx.fillRect(projectile.x, projectile.y, projectile.width, projectile.height);
+                }
+            });
+        }
+        
+        // 绘制单个玩家
+        function drawPlayer(playerId) {
+            const player = gameState.players[playerId];
+            const character = characters[player.character];
+            
+            // 绘制玩家
+            if (player.character === 'naruto') {
+                // 漩涡鸣人使用预加载的图片
+                let img;
+                if (player.isDashing) {
+                    // 突进时显示突进贴图
+                    img = images.naruto.dash;
+                } else if (player.isAttacking) {
+                    // 攻击时显示对应帧的图片
+                    const frameIndex = Math.min(player.attackFrame, images.naruto.attack.length - 1);
+                    img = images.naruto.attack[frameIndex];
+                } else {
+                    img = images.naruto.idle;
+                }
+                // 绘制图片，根据方向翻转
+                if (player.direction === 1) {
+                    ctx.drawImage(img, player.x, player.y, player.width, player.height);
+                } else {
+                    ctx.save();
+                    ctx.scale(-1, 1);
+                    ctx.drawImage(img, -player.x - player.width, player.y, player.width, player.height);
+                    ctx.restore();
+                }
+            } else if (player.character === 'ichigo') {
+                // 黑崎一护使用预加载的图片
+                let img;
+                if (player.isDashing) {
+                    // 突进时显示突进贴图
+                    img = images.ichigo.dash;
+                } else if (player.isBlocking) {
+                    // 防御时显示防御贴图
+                    img = images.ichigo.block;
+                } else if (player.isAttacking) {
+                    // 攻击时显示对应帧的图片
+                    const frameIndex = Math.min(player.attackFrame, images.ichigo.attack.length - 1);
+                    img = images.ichigo.attack[frameIndex];
+                } else {
+                    img = images.ichigo.idle;
+                }
+                // 绘制图片，根据方向翻转
+                if (player.direction === 1) {
+                    ctx.drawImage(img, player.x, player.y, player.width, player.height);
+                } else {
+                    ctx.save();
+                    ctx.scale(-1, 1);
+                    ctx.drawImage(img, -player.x - player.width, player.y, player.width, player.height);
+                    ctx.restore();
+                }
+            } else {
+                // 其他角色使用颜色块
+                ctx.fillStyle = character.color;
+                ctx.fillRect(player.x, player.y, player.width, player.height);
+            }
+            
+            // 绘制攻击效果
+            if (player.isAttacking) {
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                ctx.fillRect(
+                    player.x + (player.direction > 0 ? player.width : -player.width),
+                    player.y,
+                    player.width,
+                    player.height
+                );
+            }
+            
+            // 绘制格挡效果
+            if (player.isBlocking) {
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.lineWidth = 3;
+                ctx.strokeRect(player.x - 5, player.y - 5, player.width + 10, player.height + 10);
+            }
+            
+            // 绘制僵直效果
+            if (player.isStunned) {
+                ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
+                ctx.fillRect(player.x, player.y, player.width, player.height);
+            }
+        }
+        
+        // 更新UI
+        function updateUI() {
+            // 更新计时器
+            timerDisplay.textContent = gameState.timeLeft;
+            
+            // 更新血量
+            player1Health.style.width = (gameState.players.player1.health / gameState.players.player1.maxHealth) * 100 + '%';
+            player2Health.style.width = (gameState.players.player2.health / gameState.players.player2.maxHealth) * 100 + '%';
+            
+            // 更新体力
+            player1Stamina.style.width = gameState.players.player1.stamina + '%';
+            player2Stamina.style.width = gameState.players.player2.stamina + '%';
+            
+            // 更新能量
+            player1Energy.style.width = gameState.players.player1.energy + '%';
+            player2Energy.style.width = gameState.players.player2.energy + '%';
+        }
+        
+        // 开始游戏循环
+        function startGameLoop() {
+            gameLoop();
+        }
+        
+        // 开始计时器
+        function startTimer() {
+            const timerInterval = setInterval(() => {
+                if (gameState.timeLeft > 0) {
+                    gameState.timeLeft--;
+                } else {
+                    clearInterval(timerInterval);
+                    endGame();
+                }
+            }, 1000);
+        }
+        
+        // 结束游戏
+        function endGame(winnerId) {
+            gameState.gameStarted = false;
+            
+            // 判定胜负
+            let winner;
+            if (winnerId) {
+                winner = winnerId === 'player1' ? '玩家1获胜！' : '玩家2获胜！';
+                // 聚焦到获胜方
+                focusOnWinner(winnerId);
+            } else {
+                if (gameState.players.player1.health > gameState.players.player2.health) {
+                    winner = '玩家1获胜！';
+                    // 聚焦到获胜方
+                    focusOnWinner('player1');
+                } else if (gameState.players.player2.health > gameState.players.player1.health) {
+                    winner = '玩家2获胜！';
+                    // 聚焦到获胜方
+                    focusOnWinner('player2');
+                } else {
+                    winner = '平局！';
+                }
+            }
+            
+            // 显示游戏结束界面
+            winnerDisplay.textContent = winner;
+            gameOver.style.display = 'block';
+        }
+        
+        // 聚焦到获胜方
+        function focusOnWinner(winnerId) {
+            const winner = gameState.players[winnerId];
+            
+            // 简单的聚焦效果：放大获胜方
+            setTimeout(() => {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.save();
+                ctx.scale(2, 2);
+                ctx.translate(
+                    canvas.width / 4 - winner.x - winner.width / 2,
+                    canvas.height / 4 - winner.y - winner.height / 2
+                );
+                drawPlayer(winnerId);
+                ctx.restore();
+            }, 500);
+        }
+        
+        // 重置游戏
+        function resetGame() {
+            gameState.selectedCharacters = {
+                player1: null,
+                player2: null
+            };
+            gameState.gameStarted = false;
+            gameState.timeLeft = 60;
+            gameState.players = {
+                player1: {
+                    x: 200,
+                    y: 300,
+                    width: 50,
+                    height: 50,
+                    health: 2000,
+                    maxHealth: 2000,
+                    energy: 0,
+                    stamina: 100,
+                    maxStamina: 100,
+                    speed: 5,
+                    jumpSpeed: -15,
+                    velocityY: 0,
+                    direction: 1,
+                    isAttacking: false,
+                    isSkillAttacking: false,
+                    attackFrame: 0,
+                    attackTimer: 0,
+                    isBlocking: false,
+                    isJumping: false,
+                    isAirborne: false,
+                    isStunned: false,
+                    isDashing: false,
+                    dashCooldown: 0,
+                    dashDistance: 0,
+                    dashSpeed: 0,
+                    attackCooldown: 0,
+                    blockCooldown: 0,
+                    stunCooldown: 0,
+                    staminaRegenTimer: 0,
+                    doubleJumpUsed: false,
+                    jumpPressed: false,
+                    rangedAttackCooldown: 0,
+                    projectiles: [],
+                    character: null
+                },
+                player2: {
+                    x: 550,
+                    y: 300,
+                    width: 50,
+                    height: 50,
+                    health: 2000,
+                    maxHealth: 2000,
+                    energy: 0,
+                    stamina: 100,
+                    maxStamina: 100,
+                    speed: 5,
+                    jumpSpeed: -15,
+                    velocityY: 0,
+                    direction: -1,
+                    isAttacking: false,
+                    isSkillAttacking: false,
+                    attackFrame: 0,
+                    attackTimer: 0,
+                    isBlocking: false,
+                    isJumping: false,
+                    isAirborne: false,
+                    isStunned: false,
+                    isDashing: false,
+                    dashCooldown: 0,
+                    dashDistance: 0,
+                    dashSpeed: 0,
+                    attackCooldown: 0,
+                    blockCooldown: 0,
+                    stunCooldown: 0,
+                    staminaRegenTimer: 0,
+                    doubleJumpUsed: false,
+                    jumpPressed: false,
+                    rangedAttackCooldown: 0,
+                    projectiles: [],
+                    character: null
+                }
+            };
+            gameState.keys = {
+                player1: {
+                    up: false,
+                    down: false,
+                    left: false,
+                    right: false,
+                    attack: false,
+                    jump: false,
+                    skill: false,
+                    block: false
+                },
+                player2: {
+                    up: false,
+                    down: false,
+                    left: false,
+                    right: false,
+                    attack: false,
+                    jump: false,
+                    skill: false,
+                    block: false
+                }
+            };
+            
+            // 重置UI
+            updateUI();
+            
+            // 重置角色选择
+            document.querySelectorAll('.character').forEach(character => {
+                character.style.border = 'none';
+            });
+        }
+        
+        // 初始化游戏
+        function initGame() {
+            initEventListeners();
+        }
+        
+        // 启动游戏
+        initGame();
+    </script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+# Python 缓存
+__pycache__/
+*.pyc
+*.pyo
+
+# macOS
+.DS_Store
+
+# WorkBuddy 项目内部数据（不对外）
+.workbuddy/
+
+# 本机专属启动器（含绝对路径，不可移植）
+作业收集服务.app/
+
+# 构建产物（deployed/ 与 收集/ 按需求入库）
+build/
+dist/
+*.spec

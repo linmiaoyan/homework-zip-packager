@@ -1,0 +1,3652 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>重生地牢 - Dead Cells Roguelike</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Arial', sans-serif;
+      background: #0f0f1a;
+      min-height: 100vh;
+      
+      overflow: hidden;
+      color: #fff;
+    }
+
+    /* 主菜单 */
+    .menu-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      text-align: center;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    }
+
+    .menu-title {
+      font-size: 4rem;
+      font-weight: bold;
+      color: #ff6b6b;
+      text-shadow: 0 0 30px rgba(255, 107, 107, 0.5);
+      margin-bottom: 1rem;
+    }
+
+    .menu-subtitle {
+      font-size: 1.2rem;
+      color: #a0a0a0;
+      letter-spacing: 0.3rem;
+      margin-bottom: 3rem;
+    }
+
+    .menu-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 200px;
+      padding: 15px 30px;
+      margin: 15px 0;
+      background: linear-gradient(135deg, #2d2d44 0%, #1a1a2e 100%);
+      border: 2px solid #4a4a6a;
+      border-radius: 10px;
+      color: #fff;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .menu-btn:hover {
+      transform: scale(1.05);
+      border-color: #ff6b6b;
+    }
+
+    .gold-badge {
+      margin-left: 10px;
+      font-size: 1rem;
+    }
+
+    .menu-stats {
+      display: flex;
+      gap: 40px;
+      margin-top: 3rem;
+    }
+
+    .stat-item {
+      text-align: center;
+      padding: 15px 30px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 10px;
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      color: #888;
+      margin-bottom: 5px;
+    }
+
+    .stat-value {
+      font-size: 1.3rem;
+      color: #ffd700;
+      font-weight: bold;
+    }
+
+    /* 游戏界面 */
+    .game-screen {
+      display: none;
+      width: 100%;
+      height: 100vh;
+      position: relative;
+    }
+
+    .hud {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 80px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 20px;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 100;
+    }
+
+    .hud-left {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .health-bar {
+      width: 200px;
+      height: 15px;
+      background: #333;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .health-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #ff4444, #ffaa00);
+      transition: width 0.3s ease;
+    }
+
+    .health-text {
+      font-size: 0.8rem;
+      margin-top: 5px;
+    }
+
+    .hud-center .floor-text {
+      font-size: 1.2rem;
+      color: #ffd700;
+      font-weight: bold;
+    }
+
+    .hud-right {
+      text-align: right;
+    }
+
+    .gold-text {
+      font-size: 1rem;
+    }
+
+    .score-text {
+      font-size: 0.8rem;
+      color: #aaa;
+    }
+
+    .game-area {
+      position: absolute;
+      top: 80px;
+      left: 0;
+      right: 0;
+      bottom: 200px;
+      overflow: hidden;
+      background: linear-gradient(180deg, #1a0a0a 0%, #2d1818 50%, #1a0a0a 100%);
+    }
+
+    /* 地形层 */
+    .terrain-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      pointer-events: none;
+    }
+
+    .ground {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+    }
+
+    .ground-texture {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(180deg, #4a3728 0%, #2d1f14 100%);
+      border-top: 4px solid #5a4030;
+    }
+
+    .ground-decor {
+      position: absolute;
+      top: -15px;
+      left: 0;
+      right: 0;
+      height: 30px;
+    }
+
+    .rock {
+      position: absolute;
+      width: 25px;
+      height: 20px;
+      background: #5a5a5a;
+      border-radius: 50% 50% 40% 40%;
+      top: 5px;
+    }
+
+    .grass {
+      position: absolute;
+      width: 6px;
+      height: 15px;
+      background: #2d5a27;
+      border-radius: 3px 3px 0 0;
+      top: 0;
+    }
+
+    .grass::before, .grass::after {
+      content: '';
+      position: absolute;
+      width: 5px;
+      height: 12px;
+      background: #3a7a32;
+      border-radius: 2px 2px 0 0;
+    }
+
+    .grass::before {
+      left: -6px;
+      top: 4px;
+      transform: rotate(-20deg);
+    }
+
+    .grass::after {
+      right: -6px;
+      top: 4px;
+      transform: rotate(20deg);
+    }
+
+    .walls {
+      position: absolute;
+      top: 0;
+      bottom: 60px;
+      left: 0;
+      right: 0;
+    }
+
+    .wall {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 50px;
+      background: linear-gradient(90deg, #3d2817 0%, #5a3d2a 50%, #3d2817 100%);
+    }
+
+    .wall-left {
+      left: 0;
+      border-right: 4px solid #6b4423;
+    }
+
+    .wall-right {
+      right: 0;
+      border-left: 4px solid #6b4423;
+    }
+
+    .ceiling {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 50px;
+    }
+
+    .ceiling-texture {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(180deg, #2d1f14 0%, #4a3728 100%);
+      border-bottom: 4px solid #5a4030;
+    }
+
+    .torch {
+      position: absolute;
+      bottom: -8px;
+      font-size: 28px;
+      animation: flicker 0.5s infinite alternate;
+    }
+
+    @keyframes flicker {
+      0% { opacity: 0.8; transform: scale(1); }
+      100% { opacity: 1; transform: scale(1.1); }
+    }
+
+    .room-display {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .room-content {
+      text-align: center;
+    }
+
+    .room-message {
+      margin-bottom: 30px;
+    }
+
+    .message-text {
+      font-size: 2rem;
+      color: #fff;
+      font-weight: bold;
+      margin-bottom: 1rem;
+    }
+
+    .message-hint {
+      font-size: 0.9rem;
+      color: #888;
+      margin-bottom: 20px;
+    }
+
+    .rest-btn {
+      display: inline-block;
+      padding: 15px 40px;
+      margin-top: 20px;
+      background: linear-gradient(135deg, #4CAF50, #45a049);
+      border-radius: 10px;
+      color: #fff;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    .rest-btn:hover {
+      background: linear-gradient(135deg, #45a049, #3d8b40);
+    }
+
+    .terrain-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 5;
+    }
+
+    .enemies-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 10;
+    }
+
+    /* 地形样式 */
+    .terrain {
+      position: absolute;
+      border-radius: 4px;
+      box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .pillar {
+      border-radius: 4px;
+      box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.4);
+    }
+
+    .pillar::before {
+      content: '';
+      position: absolute;
+      top: 5px;
+      left: 5px;
+      right: 5px;
+      height: 10px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 2px;
+    }
+
+    .rock {
+      border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+      box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .enemy {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      opacity: 1;
+      transition: opacity 0.3s ease;
+    }
+
+    .enemy.dead {
+      opacity: 0;
+    }
+
+    .enemy-sprite {
+      font-size: 4rem;
+    }
+    
+    /* 紫色章鱼样式 */
+    .enemy-sprite.octopus {
+      width: 45px;
+      height: 45px;
+      font-size: 0;
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      /* 使用CSS绘制紫色章鱼 */
+      background: radial-gradient(circle at 50% 60%, #9370DB 0%, #8A2BE2 60%, #4B0082 100%);
+      border-radius: 50% 50% 40% 40%;
+      position: relative;
+      animation: octopusBounce 2s ease-in-out infinite;
+    }
+    
+    .enemy-sprite.octopus::before,
+    .enemy-sprite.octopus::after {
+      content: '';
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background: #000;
+      border-radius: 50%;
+      top: 35%;
+    }
+    
+    .enemy-sprite.octopus::before {
+      left: 30%;
+    }
+    
+    .enemy-sprite.octopus::after {
+      right: 30%;
+    }
+    
+    /* 章鱼触手 */
+    .enemy-sprite.octopus {
+      box-shadow: 
+        -15px 20px 0 -10px #8A2BE2,
+        -10px 30px 0 -10px #8A2BE2,
+        0 35px 0 -10px #8A2BE2,
+        10px 30px 0 -10px #8A2BE2,
+        15px 20px 0 -10px #8A2BE2;
+    }
+    
+    /* 敌人攻击状态 */
+    .enemy.attacking {
+      filter: brightness(1.2);
+    }
+    
+    .enemy.attacking .enemy-sprite.octopus {
+      box-shadow: 
+        -15px 20px 0 -10px #FF69B4,
+        -10px 30px 0 -10px #FF69B4,
+        0 35px 0 -10px #FF69B4,
+        10px 30px 0 -10px #FF69B4,
+        15px 20px 0 -10px #FF69B4;
+    }
+    
+    /* Boss章鱼放大版 */
+    .boss-enemy .enemy-sprite.octopus {
+      width: 70px;
+      height: 70px;
+      animation: bossOctopusBounce 1.5s ease-in-out infinite;
+      box-shadow: 
+        -25px 30px 0 -15px #8A2BE2,
+        -15px 45px 0 -15px #8A2BE2,
+        0 50px 0 -15px #8A2BE2,
+        15px 45px 0 -15px #8A2BE2,
+        25px 30px 0 -15px #8A2BE2;
+    }
+    
+    /* Boss章鱼攻击状态 */
+    .boss-enemy.attacking .enemy-sprite.octopus {
+      box-shadow: 
+        -25px 30px 0 -15px #FF69B4,
+        -15px 45px 0 -15px #FF69B4,
+        0 50px 0 -15px #FF69B4,
+        15px 45px 0 -15px #FF69B4,
+        25px 30px 0 -15px #FF69B4;
+    }
+    
+    /* 章鱼弹跳动画 */
+    @keyframes octopusBounce {
+      0%, 100% {
+        transform: translateY(0) scale(1);
+      }
+      25% {
+        transform: translateY(-5px) scale(1.05);
+      }
+      50% {
+        transform: translateY(0) scale(1);
+      }
+      75% {
+        transform: translateY(-3px) scale(1.02);
+      }
+    }
+    
+    /* Boss章鱼动画 */
+    @keyframes bossOctopusBounce {
+      0%, 100% {
+        transform: translateY(0) scale(1);
+      }
+      25% {
+        transform: translateY(-8px) scale(1.08);
+      }
+      50% {
+        transform: translateY(0) scale(1);
+      }
+      75% {
+        transform: translateY(-5px) scale(1.04);
+      }
+    }
+    
+    /* 章鱼移动动画 */
+    @keyframes octopusMove {
+      0%, 100% {
+        transform: translateY(0) rotate(0deg);
+      }
+      25% {
+        transform: translateY(-3px) rotate(5deg);
+      }
+      50% {
+        transform: translateY(0) rotate(0deg);
+      }
+      75% {
+        transform: translateY(-2px) rotate(-5deg);
+      }
+    }
+    
+    /* 章鱼攻击动画 */
+    @keyframes octopusAttack {
+      0%, 100% {
+        transform: scale(1) rotate(0deg);
+      }
+      30% {
+        transform: scale(1.1) rotate(10deg);
+      }
+      50% {
+        transform: scale(1.2) rotate(-10deg);
+      }
+      70% {
+        transform: scale(1.1) rotate(5deg);
+      }
+    }
+    
+    /* Boss章鱼攻击动画 */
+    @keyframes bossOctopusAttack {
+      0%, 100% {
+        transform: scale(1) rotate(0deg);
+      }
+      30% {
+        transform: scale(1.15) rotate(15deg);
+      }
+      50% {
+        transform: scale(1.3) rotate(-15deg);
+      }
+      70% {
+        transform: scale(1.15) rotate(8deg);
+      }
+    }
+
+    /* Boss敌人样式 */
+    .boss-enemy {
+      transform: scale(1.5);
+      transform-origin: bottom center;
+    }
+
+    .boss-enemy .enemy-sprite {
+      width: 70px;
+      height: 70px;
+      font-size: 0;
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+
+    .frankenstein-boss {
+      background-image: url('https://neeko-copilot.bytedance.net/api/text_to_image?prompt=frankenstein%20monster%20chibi%20style%20blue%20skin%20yellow%20eyes%20brown%20spiky%20hair%20green%20tattered%20jacket%20metal%20bolts%20stitches%20cute%20cartoon%20game%20character&image_size=square');
+    }
+
+    .mummy-boss {
+      background-image: url('https://neeko-copilot.bytedance.net/api/text_to_image?prompt=mummy%20warrior%20chibi%20style%20bandages%20red%20glow%20dual%20scimitars%20cute%20cartoon%20character&image_size=square');
+    }
+
+    /* 怪兽样式 */
+    .enemy-sprite.kaiju {
+      width: 60px;
+      height: 60px;
+      font-size: 0;
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      background-image: url('https://neeko-copilot.bytedance.net/api/text_to_image?prompt=kaiju%20monster%20brown%20scales%20spiked%20back%20giant%20lizard%20cartoon%20style&image_size=square');
+    }
+
+    .boss-enemy .enemy-health-bar {
+      width: 100px;
+      height: 12px;
+      margin-bottom: 5px;
+    }
+
+    .enemy-health-bar {
+      width: 60px;
+      height: 8px;
+      background: #333;
+      border-radius: 4px;
+      overflow: hidden;
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      margin-bottom: 5px;
+      z-index: 10;
+    }
+
+    .enemy-health-fill {
+      height: 100%;
+      background: #ff4444;
+      transition: width 0.3s ease;
+    }
+
+    .items-container {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    .item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 15px;
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 10px;
+      border: 2px solid;
+      cursor: pointer;
+    }
+
+    .item-icon {
+      font-size: 2.5rem;
+    }
+
+    .item-name {
+      font-size: 0.7rem;
+      margin-top: 5px;
+    }
+
+    /* 玩家 */
+    .player {
+      position: absolute;
+      bottom: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+    }
+
+    .player.invincible {
+      animation: blink 0.2s infinite;
+    }
+
+    .player.attacking .player-arm-right {
+      animation: swing 0.3s ease-out;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    /* 受击动画 */
+    .pixel-character.hit {
+      animation: hitFlash 0.15s ease-out;
+    }
+    
+    @keyframes hitFlash {
+      0% { filter: brightness(2); transform: translateX(0); }
+      25% { filter: brightness(3) hue-rotate(180deg); transform: translateX(-10px); }
+      50% { filter: brightness(2); transform: translateX(10px); }
+      75% { filter: brightness(3) hue-rotate(180deg); transform: translateX(-5px); }
+      100% { filter: brightness(1); transform: translateX(0); }
+    }
+    
+    /* 死亡动画 */
+    .pixel-character.dying {
+      animation: deathFall 0.5s ease-out forwards;
+    }
+    
+    @keyframes deathFall {
+      0% { transform: rotate(0deg) translateY(0); }
+      30% { transform: rotate(-20deg) translateY(-20px); }
+      100% { transform: rotate(-90deg) translateY(50px); opacity: 0; }
+    }
+
+    @keyframes armLift {
+      0% { transform: rotate(0deg); }
+      30% { transform: rotate(-30deg) translateY(-8px); }
+      100% { transform: rotate(0deg); }
+    }
+
+    @keyframes gunRecoil {
+      0% { transform: rotate(-15deg) translateX(0); }
+      20% { transform: rotate(-5deg) translateX(-5px); }
+      100% { transform: rotate(-15deg) translateX(0); }
+    }
+
+    /* 像素角色样式 */
+    .pixel-character {
+      position: relative;
+      width: 50px;
+      height: 75px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: transform 0.1s ease;
+    }
+    
+    /* 面向方向 */
+    .pixel-character.facing-left {
+      transform: scaleX(-1);
+    }
+    
+    /*  idle 待机动画 */
+    .pixel-character.idle {
+      animation: idleBreathe 1s ease-in-out infinite;
+    }
+    
+    @keyframes idleBreathe {
+      0%, 100% { transform: scaleY(1); }
+      50% { transform: scaleY(1.02); }
+    }
+
+    /* 头部 */
+    .char-head {
+      width: 24px;
+      height: 24px;
+      background: #ffcb8e;
+      position: relative;
+      z-index: 4;
+    }
+
+    .char-hair {
+      position: absolute;
+      top: -4px;
+      left: -2px;
+      width: 28px;
+      height: 12px;
+      background: #ffd700;
+    }
+
+    .char-hair::before {
+      content: '';
+      position: absolute;
+      top: -6px;
+      left: 4px;
+      width: 6px;
+      height: 8px;
+      background: #ffd700;
+    }
+
+    .char-hair::after {
+      content: '';
+      position: absolute;
+      top: -4px;
+      left: 12px;
+      width: 8px;
+      height: 10px;
+      background: #ffd700;
+    }
+
+    .char-face {
+      position: absolute;
+      top: 8px;
+      left: 4px;
+      width: 16px;
+      height: 12px;
+    }
+
+    .char-eye {
+      width: 4px;
+      height: 4px;
+      background: #333;
+      position: absolute;
+      top: 2px;
+    }
+
+    .char-eye-left {
+      left: 1px;
+    }
+
+    .char-eye-right {
+      right: 1px;
+    }
+
+    .char-mouth {
+      width: 6px;
+      height: 3px;
+      background: #c97b7b;
+      position: absolute;
+      bottom: 2px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    /* 身体 */
+    .char-torso {
+      width: 20px;
+      height: 20px;
+      background: #6b7280;
+      position: relative;
+      z-index: 2;
+      margin-top: -2px;
+    }
+
+    .char-vest {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 16px;
+      height: 16px;
+      background: #4b5563;
+    }
+
+    /* 手臂 */
+    .char-arms {
+      position: absolute;
+      top: 22px;
+      width: 60px;
+      display: flex;
+      justify-content: space-between;
+      z-index: 3;
+    }
+
+    .char-arm {
+      width: 14px;
+      height: 18px;
+      background: #ffcb8e;
+      position: relative;
+      transform-origin: top center;
+      transition: transform 0.1s ease;
+    }
+
+    .char-arm-left {
+      margin-left: -15px;
+      border-radius: 0 0 0 4px;
+    }
+
+    .char-arm-right {
+      margin-right: -15px;
+      border-radius: 0 0 4px 0;
+    }
+
+    .char-fist {
+      width: 10px;
+      height: 10px;
+      background: #ff6b6b;
+      position: absolute;
+      bottom: -4px;
+      border-radius: 2px;
+      border: 2px solid #cc5555;
+    }
+
+    .char-fist-left {
+      left: -3px;
+    }
+
+    .char-fist-right {
+      right: -3px;
+    }
+
+    /* 攻击动画 */
+    .pixel-character.attacking .char-arm-right.punching {
+      animation: punchRight 0.2s ease-out;
+    }
+
+    .pixel-character.attacking .char-arm-left.punching {
+      animation: punchLeft 0.2s ease-out;
+    }
+    
+    .pixel-character.attacking {
+      animation: attackBody 0.2s ease-out;
+    }
+
+    @keyframes punchRight {
+      0% { transform: rotate(0deg) translateY(0) scale(1); }
+      20% { transform: rotate(-30deg) translateX(-5px) translateY(-3px); }
+      40% { transform: rotate(60deg) translateX(18px) translateY(-8px) scale(1.1); }
+      60% { transform: rotate(75deg) translateX(25px) translateY(-10px) scale(1.15); }
+      80% { transform: rotate(50deg) translateX(15px) translateY(-5px); }
+      100% { transform: rotate(0deg) translateY(0) scale(1); }
+    }
+
+    @keyframes punchLeft {
+      0% { transform: rotate(0deg) translateY(0) scale(1); }
+      20% { transform: rotate(30deg) translateX(5px) translateY(-3px); }
+      40% { transform: rotate(-60deg) translateX(-18px) translateY(-8px) scale(1.1); }
+      60% { transform: rotate(-75deg) translateX(-25px) translateY(-10px) scale(1.15); }
+      80% { transform: rotate(-50deg) translateX(-15px) translateY(-5px); }
+      100% { transform: rotate(0deg) translateY(0) scale(1); }
+    }
+    
+    @keyframes attackBody {
+      0% { transform: scaleX(1) scaleY(1); }
+      40% { transform: scaleX(1.1) scaleY(0.95); }
+      60% { transform: scaleX(1.15) scaleY(0.9); }
+      100% { transform: scaleX(1) scaleY(1); }
+    }
+
+    /* 腿部 */
+    .char-legs {
+      display: flex;
+      justify-content: space-between;
+      width: 30px;
+      margin-top: -2px;
+      z-index: 2;
+    }
+
+    .char-leg {
+      width: 10px;
+      height: 22px;
+      background: #4a5568;
+      border-radius: 0 0 3px 3px;
+    }
+
+    /* 鞋子 */
+    .char-shoes {
+      display: flex;
+      justify-content: space-between;
+      width: 36px;
+      margin-top: -2px;
+      z-index: 3;
+    }
+
+    .char-shoe {
+      width: 14px;
+      height: 8px;
+      background: #2d3748;
+      border-radius: 0 0 4px 4px;
+    }
+
+    .char-shoe-left {
+      margin-left: -2px;
+    }
+
+    .char-shoe-right {
+      margin-right: -2px;
+    }
+
+    /* 行走动画 */
+    .pixel-character.walking {
+      animation: walkBounce 0.3s ease-in-out infinite;
+    }
+    
+    .pixel-character.walking .char-leg-left {
+      animation: walkLeft 0.3s ease-in-out infinite;
+    }
+
+    .pixel-character.walking .char-leg-right {
+      animation: walkRight 0.3s ease-in-out infinite;
+    }
+    
+    .pixel-character.walking .char-arm-left {
+      animation: armSwingLeft 0.3s ease-in-out infinite;
+    }
+    
+    .pixel-character.walking .char-arm-right {
+      animation: armSwingRight 0.3s ease-in-out infinite;
+    }
+
+    @keyframes walkLeft {
+      0%, 100% { transform: rotate(-25deg); }
+      50% { transform: rotate(15deg); }
+    }
+
+    @keyframes walkRight {
+      0%, 100% { transform: rotate(15deg); }
+      50% { transform: rotate(-25deg); }
+    }
+    
+    @keyframes walkBounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-3px); }
+    }
+    
+    @keyframes armSwingLeft {
+      0%, 100% { transform: rotate(20deg); }
+      50% { transform: rotate(-20deg); }
+    }
+    
+    @keyframes armSwingRight {
+      0%, 100% { transform: rotate(-20deg); }
+      50% { transform: rotate(20deg); }
+    }
+
+    /* 跳跃动画 */
+    .pixel-character.jumping {
+      animation: jumpBody 0.5s ease-out forwards;
+    }
+    
+    .pixel-character.jumping .char-leg-left {
+      animation: jumpLegLeft 0.5s ease-out forwards;
+    }
+    
+    .pixel-character.jumping .char-leg-right {
+      animation: jumpLegRight 0.5s ease-out forwards;
+    }
+    
+    .pixel-character.jumping .char-arm-left {
+      animation: jumpArmLeft 0.5s ease-out forwards;
+    }
+    
+    .pixel-character.jumping .char-arm-right {
+      animation: jumpArmRight 0.5s ease-out forwards;
+    }
+
+    @keyframes jumpBody {
+      0% { transform: translateY(0) scaleY(1); }
+      10% { transform: translateY(5px) scaleY(0.9); }
+      30% { transform: translateY(-120px) scaleY(1.05); }
+      70% { transform: translateY(-90px) scaleY(1); }
+      100% { transform: translateY(0) scaleY(1); }
+    }
+    
+    @keyframes jumpLegLeft {
+      0%, 10% { transform: rotate(0deg); }
+      30% { transform: rotate(-30deg); }
+      70% { transform: rotate(-20deg); }
+      100% { transform: rotate(0deg); }
+    }
+    
+    @keyframes jumpLegRight {
+      0%, 10% { transform: rotate(0deg); }
+      30% { transform: rotate(20deg); }
+      70% { transform: rotate(30deg); }
+      100% { transform: rotate(0deg); }
+    }
+    
+    @keyframes jumpArmLeft {
+      0%, 10% { transform: rotate(0deg); }
+      30% { transform: rotate(-45deg); }
+      70% { transform: rotate(-30deg); }
+      100% { transform: rotate(0deg); }
+    }
+    
+    @keyframes jumpArmRight {
+      0%, 10% { transform: rotate(0deg); }
+      30% { transform: rotate(45deg); }
+      70% { transform: rotate(30deg); }
+      100% { transform: rotate(0deg); }
+    }
+
+    .player-legs {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .player-leg {
+      width: 13px;
+      height: 26px;
+      background: #4169e1;
+      border-radius: 0 0 7px 7px;
+    }
+
+    .player-leg.leg-move {
+      animation: walk 0.3s infinite;
+    }
+
+    .player-leg-left {
+      animation-delay: 0s;
+    }
+
+    .player-leg-right {
+      animation-delay: 0.15s;
+    }
+
+    @keyframes walk {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(15deg); }
+    }
+
+    .direction-hints {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    .direction-hint {
+      position: absolute;
+      font-size: 1.5rem;
+      padding: 15px;
+      cursor: pointer;
+      pointer-events: auto;
+    }
+
+    .direction-hint:nth-child(1) { top: -80px; left: 50%; transform: translateX(-50%); }
+    .direction-hint:nth-child(2) { bottom: -80px; left: 50%; transform: translateX(-50%); }
+    .direction-hint:nth-child(3) { left: -80px; top: 50%; transform: translateY(-50%); }
+    .direction-hint:nth-child(4) { right: -80px; top: 50%; transform: translateY(-50%); }
+
+    /* 控制面板 */
+    .controls {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 200px;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 15px;
+    }
+
+    .control-row {
+      display: flex;
+      gap: 40px;
+      margin-bottom: 20px;
+    }
+
+    .control-btn {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #333, #222);
+      border: 2px solid #444;
+      cursor: pointer;
+      font-size: 2rem;
+    }
+
+    .control-btn:active {
+      background: linear-gradient(135deg, #444, #333);
+    }
+
+    .dpad {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 5px;
+    }
+
+    .dpad-btn {
+      width: 60px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+
+    .dpad-btn:nth-child(1) { grid-column: 2; }
+    .dpad-btn:nth-child(2) { grid-column: 1; grid-row: 2; }
+    .dpad-btn:nth-child(3) { grid-column: 3; grid-row: 2; }
+    .dpad-btn:nth-child(4) { grid-column: 2; grid-row: 2; }
+
+    /* 背包 */
+    .inventory-panel {
+      position: absolute;
+      top: 100px;
+      right: 15px;
+      width: 150px;
+      background: rgba(0, 0, 0, 0.7);
+      border-radius: 10px;
+      padding: 15px;
+    }
+
+    .inventory-title {
+      font-size: 0.9rem;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .inventory-items {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .inventory-item {
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      border: 2px solid;
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+
+    .empty-inventory {
+      grid-column: span 2;
+      text-align: center;
+      color: #666;
+      font-size: 0.8rem;
+    }
+
+    .gate {
+      position: absolute;
+      right: 60px;
+      bottom: 60px;
+      font-size: 48px;
+      animation: gateGlow 1.5s ease-in-out infinite;
+    }
+
+    /* 宝箱样式 */
+    .treasure-chest {
+      position: absolute;
+      width: 60px;
+      height: 50px;
+      background-image: url('https://neeko-copilot.bytedance.net/api/text_to_image?prompt=treasure%20chest%20gold%20red%20ribbon%20locked%20cute%20cartoon%20style%20game%20asset&image_size=square');
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      animation: chestIdle 2s ease-in-out infinite;
+      cursor: pointer;
+    }
+
+    .treasure-chest.opened {
+      background-image: url('https://neeko-copilot.bytedance.net/api/text_to_image?prompt=treasure%20chest%20opened%20gold%20coins%20spilling%20cute%20cartoon%20style%20game%20asset&image_size=square');
+      animation: none;
+    }
+
+    @keyframes chestIdle {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+
+    .chest-particles {
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 20px;
+      animation: particles 0.5s ease-out forwards;
+    }
+
+    @keyframes particles {
+      0% { opacity: 1; transform: translateX(-50%) translateY(0); }
+      100% { opacity: 0; transform: translateX(-50%) translateY(-30px); }
+    }
+
+    .reward-message {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 24px;
+      font-weight: bold;
+      color: #ffd700;
+      text-shadow: 0 0 10px #ffd700, 0 0 20px #ff8c00;
+      animation: messageFade 2s ease-out forwards;
+      z-index: 100;
+    }
+
+    @keyframes messageFade {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+      20% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+      80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+      100% { opacity: 0; transform: translate(-50%, -60%) scale(1); }
+    }
+
+    @keyframes gateGlow {
+      0%, 100% {
+        opacity: 1;
+        filter: drop-shadow(0 0 10px #00ffff) drop-shadow(0 0 20px #00ffff);
+      }
+      50% {
+        opacity: 0.7;
+        filter: drop-shadow(0 0 20px #00ffff) drop-shadow(0 0 40px #00ffff);
+      }
+    }
+        }
+      }
+    }
+
+    @keyframes bulletMove {
+      0% {
+        opacity: 1;
+        transform: scale(1);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(0.5);
+      }
+    }
+
+    .slash-effect {
+      position: absolute;
+      width: 80px;
+      height: 80px;
+      background: radial-gradient(circle, rgba(255,0,0,0) 0%, rgba(255,0,0,0.3) 50%, rgba(255,0,0,0.8) 70%, rgba(255,0,0,1) 100%);
+      border: 3px solid rgba(255,255,255,0.8);
+      border-radius: 50%;
+      animation: slashFade 0.4s ease-out forwards;
+      pointer-events: none;
+      filter: blur(2px);
+      box-shadow: 0 0 20px rgba(255,0,0,0.8), inset 0 0 20px rgba(255,255,255,0.3);
+    }
+
+    .hand-attack-effect {
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      background: radial-gradient(circle, rgba(255,0,0,0.1) 0%, rgba(255,0,0,0.4) 40%, rgba(255,0,0,0.7) 70%, rgba(255,0,0,0.9) 100%);
+      border: 2px solid rgba(255,255,255,0.9);
+      border-radius: 50%;
+      animation: handAttack 0.4s ease-out forwards;
+      pointer-events: none;
+      z-index: 10;
+      filter: blur(1px);
+      box-shadow: 0 0 15px rgba(255,0,0,0.8), inset 0 0 10px rgba(255,255,255,0.4);
+    }
+
+    @keyframes handAttack {
+      0% {
+        opacity: 1;
+        transform: scale(0.8);
+        box-shadow: 0 0 10px rgba(255,0,0,0.8), inset 0 0 10px rgba(255,255,255,0.4);
+      }
+      30% {
+        opacity: 1;
+        transform: scale(1.1);
+        box-shadow: 0 0 25px rgba(255,0,0,1), inset 0 0 20px rgba(255,255,255,0.6);
+      }
+      60% {
+        opacity: 0.8;
+        transform: scale(1.2);
+        box-shadow: 0 0 20px rgba(255,0,0,0.9), inset 0 0 15px rgba(255,255,255,0.5);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(1.5);
+        box-shadow: 0 0 5px rgba(255,0,0,0.3), inset 0 0 5px rgba(255,255,255,0.2);
+      }
+    }
+
+    .hit-effect {
+      position: absolute;
+      width: 50px;
+      height: 50px;
+      background-image: url('https://neeko-copilot.bytedance.net/api/text_to_image?prompt=explosion%20effect%20red%20orange%20purple%20glow%20transparent%20background&image_size=square');
+      background-size: contain;
+      background-repeat: no-repeat;
+      animation: hitExplode 0.3s ease-out forwards;
+      pointer-events: none;
+      z-index: 20;
+    }
+    
+    .enemy-attack-effect {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      background: radial-gradient(circle, rgba(138,43,226,0.8) 0%, rgba(147,112,219,0.6) 50%, transparent 100%);
+      border-radius: 50%;
+      pointer-events: none;
+      animation: enemyAttackPulse 0.6s ease-out;
+      z-index: 15;
+    }
+    }
+
+    .death-effect {
+      position: absolute;
+      width: 80px;
+      height: 200px;
+      background-image: url('https://neeko-copilot.bytedance.net/api/text_to_image?prompt=red%20glowing%20vertical%20pillar%20with%20chinese%20characters%20%E8%A1%80%E7%84%B1%E9%AD%94%E7%A5%9E%E6%9D%80%E5%99%A8%20magic%20aura%20transparent%20background%20red%20light%20effects&image_size=square');
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center bottom;
+      animation: deathPillar 1s ease-out forwards;
+      pointer-events: none;
+      z-index: 25;
+      transform: translateX(-20px);
+    }
+
+    .explosion-particle {
+      position: absolute;
+      width: 15px;
+      height: 15px;
+      background-image: url('https://neeko-copilot.bytedance.net/api/text_to_image?prompt=fire%20particle%20glowing%20orange%20yellow%20transparent%20background&image_size=square');
+      background-size: contain;
+      background-repeat: no-repeat;
+      animation: particleFly 0.5s ease-out forwards;
+      pointer-events: none;
+      z-index: 15;
+    }
+
+    @keyframes hitExplode {
+      0% {
+        opacity: 1;
+        transform: scale(0.5);
+      }
+      50% {
+        opacity: 0.8;
+        transform: scale(1.2);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(1.5);
+      }
+    }
+    
+    @keyframes enemyAttackPulse {
+      0% {
+        opacity: 0;
+        transform: scale(0.5);
+      }
+      30% {
+        opacity: 0.8;
+        transform: scale(1.2);
+      }
+      70% {
+        opacity: 0.4;
+        transform: scale(1.5);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(2);
+      }
+    }
+
+    @keyframes particleFly {
+      0% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(0.5) translateY(-20px) rotate(360deg);
+      }
+    }
+
+    @keyframes deathPillar {
+      0% {
+        opacity: 0;
+        transform: translateX(-25px) translateY(20px) scale(0.5);
+      }
+      20% {
+        opacity: 1;
+        transform: translateX(-25px) translateY(0) scale(1);
+      }
+      80% {
+        opacity: 1;
+        transform: translateX(-25px) translateY(0) scale(1);
+      }
+      100% {
+        opacity: 0;
+        transform: translateX(-25px) translateY(-10px) scale(0.8);
+      }
+    }
+
+    @keyframes slashFade {
+      0% {
+        opacity: 1;
+        transform: scale(0.6) translateX(0);
+        box-shadow: 0 0 20px rgba(255,0,0,0.8), inset 0 0 20px rgba(255,255,255,0.3);
+      }
+      40% {
+        opacity: 1;
+        transform: scale(1.1) translateX(isAttackingLeft ? -20px : 20px);
+        box-shadow: 0 0 40px rgba(255,0,0,1), inset 0 0 30px rgba(255,255,255,0.5);
+      }
+      70% {
+        opacity: 0.6;
+        transform: scale(1.3) translateX(isAttackingLeft ? -35px : 35px);
+        box-shadow: 0 0 30px rgba(255,0,0,0.9), inset 0 0 25px rgba(255,255,255,0.4);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(1.6) translateX(isAttackingLeft ? -50px : 50px);
+        box-shadow: 0 0 10px rgba(255,0,0,0.3), inset 0 0 10px rgba(255,255,255,0.2);
+      }
+    }
+
+    /* 弹窗 */
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+    }
+
+    .overlay.active {
+      display: flex;
+    }
+
+    .menu-box {
+      background: linear-gradient(135deg, #2d2d44 0%, #1a1a2e 100%);
+      padding: 40px;
+      border-radius: 20px;
+      text-align: center;
+    }
+
+    .menu-box h2 {
+      font-size: 2rem;
+      margin-bottom: 20px;
+    }
+
+    .menu-box p {
+      margin: 10px 0;
+      color: #aaa;
+    }
+
+    .menu-box .btn {
+      display: block;
+      padding: 15px 40px;
+      margin: 15px auto;
+      background: linear-gradient(135deg, #4a4a6a 0%, #3a3a5a 100%);
+      border-radius: 10px;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    .menu-box .btn:hover {
+      background: linear-gradient(135deg, #5a5a7a 0%, #4a4a6a 100%);
+    }
+
+    .menu-box .victory-btn {
+      background: linear-gradient(135deg, #4CAF50, #45a049);
+    }
+  </style>
+</head>
+<body>
+  <!-- 主菜单 -->
+  <div class="menu-screen" id="menuScreen">
+    <h1 class="menu-title">重生地牢</h1>
+    <p class="menu-subtitle">DEAD CELLS ROGUELIKE</p>
+    
+    <div class="menu-btn" onclick="startGame()">
+      <span>开始冒险</span>
+    </div>
+    
+    <div class="menu-stats">
+      <div class="stat-item">
+        <div class="stat-label">最高层数</div>
+        <div class="stat-value" id="statFloor">0</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">击杀数</div>
+        <div class="stat-value" id="statKills">0</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">最高分数</div>
+        <div class="stat-value" id="statScore">0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 游戏界面 -->
+  <div class="game-screen" id="gameScreen">
+    <div class="hud">
+      <div class="hud-left">
+        <div class="health-bar">
+          <div class="health-fill" id="healthFill"></div>
+        </div>
+        <div class="health-text" id="healthText">100 / 100</div>
+      </div>
+      <div class="hud-center">
+        <div class="floor-text" id="floorText">第 1 层</div>
+      </div>
+      <div class="hud-right">
+        <div class="gold-text" id="goldText">💰 0</div>
+        <div class="score-text" id="scoreText">分数: 0</div>
+      </div>
+    </div>
+
+    <div class="game-area" id="gameArea">
+      <!-- 地形层 -->
+      <div class="terrain-layer">
+        <div class="ground">
+          <div class="ground-texture"></div>
+          <div class="ground-decor" id="groundDecor"></div>
+        </div>
+        <div class="walls">
+          <div class="wall wall-left"></div>
+          <div class="wall wall-right"></div>
+        </div>
+        <div class="ceiling">
+          <div class="ceiling-texture"></div>
+          <div class="torch" style="left: 15%">🔥</div>
+          <div class="torch" style="left: 50%">🔥</div>
+          <div class="torch" style="left: 85%">🔥</div>
+        </div>
+      </div>
+
+      <div class="room-display" id="roomDisplay">
+        <div class="room-content" id="roomContent">
+          <div class="room-message" style="display: none;">
+            <div class="message-text" id="messageText">欢迎来到地牢！</div>
+            <div class="message-hint" id="messageHint">击败敌人，收集装备，挑战Boss！</div>
+            <div class="rest-btn" id="restBtn" style="display: none;" onclick="rest()">休息</div>
+          </div>
+          <div class="terrain-container" id="terrainContainer"></div>
+          <div class="enemies-container" id="enemiesContainer"></div>
+          <div class="items-container" id="itemsContainer"></div>
+        </div>
+      </div>
+      
+      <div class="player" id="player">
+        <div class="pixel-character idle" id="playerSprite">
+          <!-- 头部 -->
+          <div class="char-head">
+            <div class="char-hair"></div>
+            <div class="char-face">
+              <div class="char-eye char-eye-left"></div>
+              <div class="char-eye char-eye-right"></div>
+              <div class="char-mouth"></div>
+            </div>
+          </div>
+          <!-- 身体 -->
+          <div class="char-torso">
+            <div class="char-vest"></div>
+          </div>
+          <!-- 手臂 -->
+          <div class="char-arms">
+            <div class="char-arm char-arm-left">
+              <div class="char-fist char-fist-left"></div>
+            </div>
+            <div class="char-arm char-arm-right">
+              <div class="char-fist char-fist-right"></div>
+            </div>
+          </div>
+          <!-- 腿部 -->
+          <div class="char-legs">
+            <div class="char-leg char-leg-left"></div>
+            <div class="char-leg char-leg-right"></div>
+          </div>
+          <!-- 鞋子 -->
+          <div class="char-shoes">
+            <div class="char-shoe char-shoe-left"></div>
+            <div class="char-shoe char-shoe-right"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="direction-hints" id="directionHints"></div>
+    </div>
+
+    <div class="inventory-panel">
+      <div class="inventory-title">背包</div>
+      <div class="inventory-items" id="inventoryItems">
+        <div class="empty-inventory">背包为空</div>
+      </div>
+    </div>
+
+    <!-- 暂停弹窗 -->
+    <div class="overlay" id="pauseOverlay">
+      <div class="menu-box">
+        <h2>游戏暂停</h2>
+        <div class="btn" onclick="resumeGame()">继续游戏</div>
+        <div class="btn" onclick="quitGame()">退出游戏</div>
+      </div>
+    </div>
+
+    <!-- 游戏结束弹窗 -->
+    <div class="overlay" id="gameoverOverlay">
+      <div class="menu-box">
+        <h2>游戏结束</h2>
+        <p>最终分数: <span id="finalScore">0</span></p>
+        <p>击杀数: <span id="finalKills">0</span></p>
+        <div class="btn" onclick="restartGame()">再来一局</div>
+        <div class="btn" onclick="quitGame()">返回主页</div>
+      </div>
+    </div>
+
+    <!-- 胜利弹窗 -->
+    <div class="overlay" id="victoryOverlay">
+      <div class="menu-box">
+        <h2>🎉 胜利！</h2>
+        <p>最终分数: <span id="victoryScore">0</span></p>
+        <div class="btn victory-btn" onclick="nextFloor()">下一层</div>
+        <div class="btn" onclick="quitGame()">返回主页</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 游戏数据
+    let gameData = {
+      gold: 0,
+      maxFloor: 0,
+      totalKills: 0,
+      highScore: 0,
+      upgrades: {
+        maxHealth: 0,
+        attack: 0,
+        defense: 0,
+        speed: 0,
+        critRate: 0,
+        critDamage: 0
+      }
+    };
+
+    // 游戏状态
+    let player = null;
+    let dungeon = null;
+    let gameLoop = null;
+    let isPaused = false;
+    let isGameOver = false;
+    let isVictory = false;
+    let score = 0;
+    let kills = 0;
+    
+    // 光门系统
+    let gateUnlocked = false;
+    let killsUntilGate = 10; // 击败10只怪解锁光门
+
+    // 玩家状态
+    let isPlayerAttacking = false;
+    let isMovingLeft = false;
+    let isMovingRight = false;
+    let isJumping = false;
+    let doubleJumpAvailable = false; // 二段跳可用标记
+    let isFallingAttack = false; // 是否正在下落攻击
+    let isAttackingLeft = false;
+    
+    // 游戏尺寸
+    let gameWidth = 800;
+    let gameHeight = 600;
+
+    // 初始化
+    function init() {
+      loadGameData();
+      updateMenuStats();
+      initTerrain();
+      
+      // 获取游戏区域尺寸
+      const gameArea = document.getElementById('gameArea');
+      gameWidth = gameArea.offsetWidth;
+      gameHeight = gameArea.offsetHeight;
+    }
+
+    function initTerrain() {
+      const groundDecor = document.getElementById('groundDecor');
+      for (let i = 0; i < 5; i++) {
+        const rock = document.createElement('div');
+        rock.className = 'rock';
+        rock.style.left = (i * 18 + Math.random() * 10) + '%';
+        groundDecor.appendChild(rock);
+      }
+      for (let i = 0; i < 8; i++) {
+        const grass = document.createElement('div');
+        grass.className = 'grass';
+        grass.style.left = (i * 11 + Math.random() * 5) + '%';
+        groundDecor.appendChild(grass);
+      }
+    }
+
+    function loadGameData() {
+      const saved = localStorage.getItem('deadCellsData');
+      if (saved) {
+        gameData = JSON.parse(saved);
+      }
+    }
+
+    function saveGameData() {
+      localStorage.setItem('deadCellsData', JSON.stringify(gameData));
+    }
+
+    function updateMenuStats() {
+      document.getElementById('statFloor').textContent = gameData.maxFloor;
+      document.getElementById('statKills').textContent = gameData.totalKills;
+      document.getElementById('statScore').textContent = gameData.highScore;
+    }
+
+    // 玩家类
+    class Player {
+      constructor() {
+        this.x = 100;
+        this.y = 300;
+        this.width = 40;
+        this.height = 60;
+        this.stats = {
+          maxHealth: 100 + gameData.upgrades.maxHealth * 20,
+          health: 100 + gameData.upgrades.maxHealth * 20,
+          attack: 10 + gameData.upgrades.attack * 3,
+          defense: 5 + gameData.upgrades.defense * 2,
+          speed: 5 + gameData.upgrades.speed * 0.5,
+          critRate: 0.1 + gameData.upgrades.critRate * 0.05,
+          critDamage: 1.5 + gameData.upgrades.critDamage * 0.1
+        };
+        this.currentWeapon = null;
+        this.inventory = [];
+        this.gold = 0;
+        this.isInvincible = false;
+        this.invincibleTimer = 0;
+        this.isAttacking = false;
+        this.attackTimer = 0;
+        this.facingRight = true;
+        this.isJumping = false;
+        this.jumpVelocity = 0;
+        this.isOnGround = true;
+      }
+
+      takeDamage(damage) {
+        if (this.isInvincible) return false;
+        const actualDamage = Math.max(0, damage - this.stats.defense);
+        this.stats.health -= actualDamage;
+        if (this.stats.health <= 0) {
+          this.stats.health = 0;
+          return true;
+        }
+        this.isInvincible = true;
+        this.invincibleTimer = 60;
+        
+        // 触发受击动画
+        const playerSprite = document.getElementById('playerSprite');
+        if (playerSprite) {
+          playerSprite.classList.remove('hit');
+          void playerSprite.offsetWidth; // 触发重绘
+          playerSprite.classList.add('hit');
+          setTimeout(() => playerSprite.classList.remove('hit'), 150);
+        }
+        
+        return false;
+      }
+
+      heal(amount) {
+        this.stats.health = Math.min(this.stats.maxHealth, this.stats.health + amount);
+      }
+
+      addGold(amount) {
+        this.gold += amount;
+      }
+
+      equipWeapon(weapon) {
+        if (this.currentWeapon) {
+          this.inventory.push(this.currentWeapon);
+        }
+        this.currentWeapon = weapon;
+        const idx = this.inventory.findIndex(i => i.id === weapon.id);
+        if (idx !== -1) this.inventory.splice(idx, 1);
+      }
+
+      addItem(item) {
+        if (this.inventory.length < 10) {
+          this.inventory.push(item);
+        }
+      }
+
+      update() {
+        if (this.isInvincible) {
+          this.invincibleTimer--;
+          if (this.invincibleTimer <= 0) {
+            this.isInvincible = false;
+          }
+        }
+        if (this.isAttacking) {
+          this.attackTimer--;
+          if (this.attackTimer <= 0) {
+            this.isAttacking = false;
+          }
+        }
+      }
+
+      attack() {
+        if (this.isAttacking) return false;
+        this.isAttacking = true;
+        this.attackTimer = this.currentWeapon ? this.currentWeapon.stats.attackSpeed * 60 : 18;
+        return true;
+      }
+
+      getTotalAttack() {
+        let total = this.stats.attack;
+        if (this.currentWeapon) {
+          total += this.currentWeapon.stats.damage;
+        }
+        return total;
+      }
+
+      getCritMultiplier() {
+        return Math.random() < this.stats.critRate ? this.stats.critDamage : 1;
+      }
+    }
+
+    // 武器类
+    class Weapon {
+      constructor(id, name, type, stats, rarity) {
+        this.id = id;
+        this.name = name;
+        this.type = type;
+        this.stats = stats;
+        this.rarity = rarity;
+        this.icon = '⚔️';
+      }
+
+      getRarityColor() {
+        const colors = {
+          common: '#9ca3af',
+          uncommon: '#22c55e',
+          rare: '#3b82f6',
+          epic: '#a855f7',
+          legendary: '#f59e0b'
+        };
+        return colors[this.rarity] || '#9ca3af';
+      }
+
+      static createRandom(floor) {
+        const types = ['melee', 'ranged', 'magic'];
+        const type = types[Math.floor(Math.random() * types.length)];
+        const baseDamage = 5 + floor * 2 + Math.random() * 5;
+        
+        const rarityRoll = Math.random();
+        let rarity = 'common';
+        let multiplier = 1;
+        if (rarityRoll > 0.95) { rarity = 'legendary'; multiplier = 2.5; }
+        else if (rarityRoll > 0.85) { rarity = 'epic'; multiplier = 2; }
+        else if (rarityRoll > 0.7) { rarity = 'rare'; multiplier = 1.5; }
+        else if (rarityRoll > 0.5) { rarity = 'uncommon'; multiplier = 1.2; }
+
+        const names = {
+          melee: ['铁剑', '战斧', '匕首', '长剑', '巨锤'],
+          ranged: ['弓', '弩', '手枪', '步枪', '投掷匕首'],
+          magic: ['法杖', '魔杖', '魔法书', '水晶球', '咒符']
+        };
+
+        const stats = {
+          damage: Math.floor(baseDamage * multiplier),
+          attackSpeed: 0.5 + Math.random() * 0.5,
+          range: type === 'ranged' ? 150 : type === 'magic' ? 120 : 40,
+          knockback: type === 'melee' ? 10 : 5
+        };
+
+        return new Weapon(
+          `weapon_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          names[type][Math.floor(Math.random() * names[type].length)],
+          type,
+          stats,
+          rarity
+        );
+      }
+    }
+
+    // 药水类
+    class Potion {
+      constructor(id, name, effect, rarity) {
+        this.id = id;
+        this.name = name;
+        this.effect = effect;
+        this.rarity = rarity;
+        this.icon = '🧪';
+        this.type = 'potion';
+      }
+
+      getRarityColor() {
+        const colors = {
+          common: '#9ca3af',
+          uncommon: '#22c55e',
+          rare: '#3b82f6',
+          epic: '#a855f7'
+        };
+        return colors[this.rarity] || '#9ca3af';
+      }
+
+      static createRandom(floor) {
+        const types = ['health', 'strength', 'defense', 'speed', 'crit'];
+        const type = types[Math.floor(Math.random() * types.length)];
+        const baseValue = 10 + floor * 5 + Math.random() * 10;
+        
+        const rarityRoll = Math.random();
+        let rarity = 'common';
+        let multiplier = 1;
+        if (rarityRoll > 0.9) { rarity = 'epic'; multiplier = 2; }
+        else if (rarityRoll > 0.75) { rarity = 'rare'; multiplier = 1.5; }
+        else if (rarityRoll > 0.6) { rarity = 'uncommon'; multiplier = 1.2; }
+
+        const names = {
+          health: ['生命药水', '治疗药剂', '活力药水'],
+          strength: ['力量药水', '攻击药剂', '狂暴药水'],
+          defense: ['防御药水', '护盾药剂', '铁甲药水'],
+          speed: ['速度药水', '疾风药剂', '敏捷药水'],
+          crit: ['暴击药水', '致命药剂', '精准药水']
+        };
+
+        return new Potion(
+          `potion_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          names[type][Math.floor(Math.random() * names[type].length)],
+          { type, value: Math.floor(baseValue * multiplier) },
+          rarity
+        );
+      }
+    }
+
+    // 敌人类
+    class Enemy {
+      constructor(id, type, stats) {
+        this.id = id;
+        this.type = type;
+        this.stats = stats;
+        this.isAlive = true;
+        this.x = 0;
+        this.y = 0;
+        this.width = 40;
+        this.height = 50;
+      }
+
+      getSprite() {
+        // 将所有怪物改为紫色章鱼样式
+        return '<div class="enemy-sprite octopus"></div>';
+      }
+
+      takeDamage(damage) {
+        const actualDamage = Math.max(0, damage - this.stats.defense);
+        this.stats.health -= actualDamage;
+        if (this.stats.health <= 0) {
+          this.stats.health = 0;
+          this.isAlive = false;
+          return true;
+        }
+        return false;
+      }
+
+      static createRandom(floor, isBoss = false) {
+        const types = isBoss ? ['boss'] : ['slime', 'skeleton', 'goblin', 'orc', 'dragon', 'kaiju'];
+        const type = types[Math.floor(Math.random() * types.length)];
+        
+        let baseHealth, baseAttack, baseDefense;
+        
+        if (isBoss) {
+          baseHealth = 600 + floor * 50; // 增加Boss生命值
+          baseAttack = 45 + floor * 5;   // 大幅增加Boss伤害
+          baseDefense = 15 + floor * 2;  // 增加Boss防御
+        } else if (type === 'kaiju') {
+          // 怪兽有更高的属性
+          baseHealth = 100 + floor * 20 + Math.random() * 40; // 增加生命值
+          baseAttack = 20 + floor * 4 + Math.random() * 8;    // 大幅增加伤害
+          baseDefense = 5 + floor * 1.5 + Math.random() * 4;  // 增加防御
+        } else {
+          baseHealth = 30 + floor * 15 + Math.random() * 30;  // 增加生命值
+          baseAttack = 8 + floor * 3 + Math.random() * 7;     // 大幅增加伤害
+          baseDefense = 2 + floor * 0.8 + Math.random() * 3;  // 增加防御
+        }
+
+        const stats = {
+          maxHealth: Math.floor(baseHealth),
+          health: Math.floor(baseHealth),
+          attack: Math.floor(baseAttack),
+          defense: Math.floor(baseDefense),
+          speed: isBoss ? 1 : 1 + floor * 0.1 + Math.random() * 0.5,
+          rewardGold: isBoss ? 200 + floor * 50 : (type === 'kaiju' ? 30 + floor * 10 + Math.random() * 20 : 10 + floor * 5 + Math.random() * 10),
+          expReward: isBoss ? 100 + floor * 20 : (type === 'kaiju' ? 25 + floor * 5 + Math.random() * 10 : 10 + floor * 2 + Math.random() * 5)
+        };
+
+        return new Enemy(
+          `enemy_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          type,
+          stats
+        );
+      }
+
+      static createBoss(bossType, floor) {
+        const bossStats = {
+          frankenstein: {
+            health: 1000 + floor * 120,  // 增加生命值
+            attack: 40 + floor * 5,      // 大幅增加伤害
+            defense: 20 + floor * 3,     // 增加防御
+            speed: 0.9,                  // 稍微提升速度
+            rewardGold: 600 + floor * 120,
+            expReward: 400 + floor * 60
+          },
+          mummy: {
+            health: 1200 + floor * 180,  // 增加生命值
+            attack: 50 + floor * 6,      // 大幅增加伤害
+            defense: 25 + floor * 4,     // 增加防御
+            speed: 0.7,                  // 稍微提升速度
+            rewardGold: 900 + floor * 180,
+            expReward: 600 + floor * 90
+          }
+        };
+
+        const stats = bossStats[bossType] || bossStats.frankenstein;
+
+        return new Enemy(
+          `boss_${bossType}_${Date.now()}`,
+          bossType,
+          {
+            maxHealth: Math.floor(stats.health),
+            health: Math.floor(stats.health),
+            attack: Math.floor(stats.attack),
+            defense: Math.floor(stats.defense),
+            speed: stats.speed,
+            rewardGold: Math.floor(stats.rewardGold),
+            expReward: Math.floor(stats.expReward)
+          }
+        );
+      }
+    }
+
+    // 房间类
+    class Room {
+      constructor(id, type) {
+        this.id = id;
+        this.type = type;
+        this.enemies = [];
+        this.items = [];
+        this.terrain = [];
+        this.isCleared = false;
+        this.visited = false;
+      }
+
+      generateContent(floor) {
+        // 生成地形
+        this.generateTerrain(floor);
+        
+        switch (this.type) {
+          case 'start':
+            break;
+          case 'normal':
+            const enemyCount = 1 + Math.floor(Math.random() * 2) + Math.floor(floor / 3);
+            for (let i = 0; i < enemyCount; i++) {
+              const enemy = Enemy.createRandom(floor);
+              // 设置随机位置
+              enemy.x = 100 + Math.random() * (gameWidth - 200);
+              enemy.y = gameHeight - 60;
+              this.enemies.push(enemy);
+            }
+            if (Math.random() < 0.4) {
+              this.items.push(Math.random() < 0.5 ? Weapon.createRandom(floor) : Potion.createRandom(floor));
+            }
+            break;
+          case 'treasure':
+            for (let i = 0; i < 2; i++) {
+              this.items.push(Weapon.createRandom(floor));
+              this.items.push(Potion.createRandom(floor));
+            }
+            break;
+          case 'shop':
+            for (let i = 0; i < 3; i++) {
+              this.items.push(Weapon.createRandom(floor));
+            }
+            for (let i = 0; i < 2; i++) {
+              this.items.push(Potion.createRandom(floor));
+            }
+            break;
+          case 'boss':
+            this.enemies.push(Enemy.createRandom(floor, true));
+            this.items.push(Weapon.createRandom(floor + 1));
+            break;
+          case 'rest':
+            break;
+        }
+      }
+
+      generateTerrain(floor) {
+        if (this.type === 'boss') return; // Boss房间不生成地形
+        
+        const terrainTypes = ['pillar', 'rock'];
+        const terrainCount = Math.floor(Math.random() * 4) + 2; // 2-5个地形元素
+        
+        // 生成地形元素
+        for (let i = 0; i < terrainCount; i++) {
+          const terrainType = terrainTypes[Math.floor(Math.random() * terrainTypes.length)];
+          const x = 100 + Math.random() * (gameWidth - 200); // 随机位置，避开边缘
+          
+          let terrain;
+          switch (terrainType) {
+            case 'pillar':
+              terrain = {
+                type: 'pillar',
+                x: x,
+                y: gameHeight - 60, // 从地面开始
+                width: 30 + Math.random() * 10,
+                height: 50 + Math.random() * 50,
+                color: '#696969' + Math.floor(Math.random() * 10).toString(16)
+              };
+              break;
+            case 'pillar':
+              terrain = {
+                type: 'pillar',
+                x: x,
+                y: gameHeight - 60, // 从地面开始
+                width: 30 + Math.random() * 10,
+                height: 50 + Math.random() * 50,
+                color: '#696969' + Math.floor(Math.random() * 10).toString(16)
+              };
+              break;
+            case 'rock':
+              terrain = {
+                type: 'rock',
+                x: x,
+                y: gameHeight - 60, // 地面上的岩石
+                width: 20 + Math.random() * 20,
+                height: 20 + Math.random() * 20,
+                color: '#A9A9A9' + Math.floor(Math.random() * 10).toString(16)
+              };
+              break;
+          }
+          
+          this.terrain.push(terrain);
+        }
+      }
+
+      isRoomCleared() {
+        return this.type === 'rest' || this.type === 'shop' || this.type === 'treasure' ||
+               (this.type === 'normal' && this.enemies.every(e => !e.isAlive)) ||
+               (this.type === 'boss' && this.enemies.every(e => !e.isAlive));
+      }
+    }
+
+    // 地牢类
+    class Dungeon {
+      constructor(floor = 1) {
+        this.currentFloor = floor;
+        this.gridSize = 3;
+        this.rooms = [];
+        this.currentRoom = null;
+        this.generate();
+      }
+
+      generate() {
+        this.rooms = [];
+        for (let row = 0; row < this.gridSize; row++) {
+          this.rooms[row] = [];
+          for (let col = 0; col < this.gridSize; col++) {
+            let type = 'normal';
+            if (row === 0 && col === 0) type = 'start';
+            else if (row === this.gridSize - 1 && col === this.gridSize - 1) type = 'boss';
+            else {
+              const random = Math.random();
+              if (random < 0.1) type = 'treasure';
+              else if (random < 0.2) type = 'shop';
+              else if (random < 0.25) type = 'rest';
+            }
+            const room = new Room(`room_${row}_${col}`, type);
+            room.generateContent(this.currentFloor);
+            this.rooms[row][col] = room;
+          }
+        }
+        this.currentRoom = this.rooms[0][0];
+        this.currentRoom.visited = true;
+      }
+
+      moveToRoom(direction) {
+        if (!this.currentRoom) return null;
+        const pos = this.currentRoom.id.split('_');
+        let row = parseInt(pos[1]);
+        let col = parseInt(pos[2]);
+
+        switch (direction) {
+          case 'up': row--; break;
+          case 'down': row++; break;
+          case 'left': col--; break;
+          case 'right': col++; break;
+        }
+
+        if (row >= 0 && row < this.gridSize && col >= 0 && col < this.gridSize) {
+          this.currentRoom = this.rooms[row][col];
+          this.currentRoom.visited = true;
+          return this.currentRoom;
+        }
+        return null;
+      }
+
+      getAdjacentRooms() {
+        if (!this.currentRoom) return [];
+        const pos = this.currentRoom.id.split('_');
+        const row = parseInt(pos[1]);
+        const col = parseInt(pos[2]);
+        const adjacent = [];
+
+        if (row > 0) adjacent.push({ direction: 'up', room: this.rooms[row - 1][col] });
+        if (row < this.gridSize - 1) adjacent.push({ direction: 'down', room: this.rooms[row + 1][col] });
+        if (col > 0) adjacent.push({ direction: 'left', room: this.rooms[row][col - 1] });
+        if (col < this.gridSize - 1) adjacent.push({ direction: 'right', room: this.rooms[row][col + 1] });
+
+        return adjacent;
+      }
+
+      nextFloor() {
+        this.currentFloor++;
+        this.generate();
+      }
+    }
+
+    // 游戏控制
+    function startGame() {
+      try {
+        document.getElementById('menuScreen').style.display = 'none';
+        document.getElementById('gameScreen').style.display = 'block';
+        
+        player = new Player();
+        dungeon = new Dungeon();
+        score = 0;
+        kills = 0;
+        isPaused = false;
+        isGameOver = false;
+        isJumping = false; // 确保跳跃状态重置
+        isVictory = false;
+        enemyRespawnTimer = 0;
+
+        const startingWeapon = Weapon.createRandom(1);
+        player.equipWeapon(startingWeapon);
+
+        // 设置玩家初始位置
+        const playerElement = document.getElementById('player');
+        if (playerElement) {
+          player.y = 60;
+          playerElement.style.bottom = '60px';
+          playerElement.style.left = player.x + 'px';
+        }
+
+        changeBackground(); // 初始化背景
+        updateUI();
+        startGameLoop();
+      } catch (error) {
+        console.error('游戏启动错误:', error);
+        alert('游戏启动失败，请刷新页面重试。');
+      }
+    }
+
+    function startGameLoop() {
+      gameLoop = setInterval(() => {
+        if (!isPaused && !isGameOver && !isVictory) {
+          updateGame();
+        }
+      }, 1000 / 60);
+    }
+
+    let enemyRespawnTimer = 0;
+    const ENEMY_RESPAWN_DELAY = 180; // 3秒后刷新敌人
+    
+    // 升级系统
+    let playerLevel = 1;
+    let playerExp = 0;
+    const EXP_PER_LEVEL = [0, 100, 250, 500, 1000, 2000, 4000, 8000, 16000, 32000];
+    
+    // 奖励门系统
+    let rewardGateUnlocked = false;
+    const REWARD_GATE_SCORE = 1000; // 达到1000分解锁奖励门
+    let rewardGateUsed = false;
+
+    function updateGame() {
+      player.update();
+      handleMovement();
+      updateEnemyMovement();
+      checkEnemyRespawn();
+      checkLevelUp();
+      checkRewardGate();
+      checkTreasureChest();
+      updateUI();
+      
+      // 安全检查：确保玩家不会停留在空中
+      const playerElement = document.getElementById('player');
+      if (playerElement) {
+        // 如果玩家不在跳跃状态但位置不在地面，强制落地
+        if (!isJumping && !player.isJumping && player.y !== 60) {
+          player.y = 60;
+          playerElement.style.bottom = '60px';
+        }
+        
+        // 确保跳跃状态同步
+        if (isJumping !== player.isJumping) {
+          isJumping = player.isJumping;
+        }
+      }
+    }
+
+    function checkEnemyRespawn() {
+      const room = dungeon.currentRoom;
+      // 在战斗房间（normal）和起始房间（start）都可以刷新敌人
+      if (room.type !== 'normal' && room.type !== 'start') return;
+      
+      const aliveEnemies = room.enemies.filter(e => e.isAlive);
+      if (aliveEnemies.length === 0) {
+        enemyRespawnTimer++;
+        if (enemyRespawnTimer >= ENEMY_RESPAWN_DELAY) {
+          // 刷新敌人
+          const newEnemyCount = 1 + Math.floor(Math.random() * 2) + Math.floor(dungeon.currentFloor / 3);
+          for (let i = 0; i < newEnemyCount; i++) {
+            const enemy = Enemy.createRandom(dungeon.currentFloor);
+            // 设置随机位置
+            enemy.x = 100 + Math.random() * (gameWidth - 200);
+            enemy.y = gameHeight - 60;
+            room.enemies.push(enemy);
+          }
+          enemyRespawnTimer = 0;
+          updateUI(); // 更新UI显示新敌人
+        }
+      } else {
+        enemyRespawnTimer = 0;
+      }
+    }
+
+    function updateEnemyMovement() {
+      const room = dungeon.currentRoom;
+      const gameArea = document.getElementById('gameArea');
+      const gameAreaWidth = gameArea.offsetWidth;
+      const groundY = gameArea.offsetHeight - 60; // 地面位置
+      
+      room.enemies.forEach((enemy, index) => {
+        if (!enemy.isAlive) return;
+        
+        // 如果敌人还没有初始位置，设置一个随机位置
+        if (enemy.x === 0) {
+          enemy.x = 100 + (gameAreaWidth - 200) * Math.random();
+          enemy.y = groundY - (enemy.height || 50); // 确保敌人完全站在地面上
+        }
+        
+        // 计算与玩家的距离
+        const dx = player.x - enemy.x;
+        const distance = Math.abs(dx);
+        
+        // 敌人向玩家移动
+        let isMoving = false;
+        if (distance > 30) {
+          const moveSpeed = enemy.stats.speed * 0.5;
+          if (dx > 0) {
+            enemy.x += moveSpeed;
+          } else {
+            enemy.x -= moveSpeed;
+          }
+          isMoving = true;
+        }
+        
+        // 初始化敌人攻击状态
+        if (enemy.attackCooldown === undefined) {
+          enemy.attackCooldown = 0;
+          enemy.isAttacking = false;
+        }
+        
+        // 更新攻击冷却
+        if (enemy.attackCooldown > 0) {
+          enemy.attackCooldown--;
+        }
+        
+        // 敌人攻击逻辑
+        if (distance < 30 && !enemy.isAttacking && enemy.attackCooldown <= 0) {
+          enemy.isAttacking = true;
+          enemy.attackCooldown = 180; // 攻击冷却时间（3秒）
+          
+          // 获取敌人元素
+          const enemyElements = document.querySelectorAll('.enemy');
+          if (enemyElements[index]) {
+            const enemyElement = enemyElements[index];
+            const spriteElement = enemyElement.querySelector('.enemy-sprite.octopus');
+            
+            // 播放攻击动画
+            if (spriteElement) {
+              // 根据敌人类型选择攻击动画
+              if (enemy.type === 'frankenstein' || enemy.type === 'mummy') {
+                spriteElement.style.animation = 'bossOctopusAttack 0.6s ease-in-out';
+              } else {
+                spriteElement.style.animation = 'octopusAttack 0.6s ease-in-out';
+              }
+              // 根据攻击方向翻转
+              spriteElement.style.transform = dx > 0 ? 'scaleX(1)' : 'scaleX(-1)';
+            }
+            
+            // 添加攻击状态类
+            enemyElement.classList.add('attacking');
+            
+            // 造成伤害
+            setTimeout(() => {
+              // 检查玩家是否还在攻击范围内
+              const newDx = player.x - enemy.x;
+              const newDistance = Math.abs(newDx);
+              
+              if (newDistance < 35) {
+                // 玩家受到伤害
+                const actualDamage = Math.max(1, enemy.stats.attack - player.stats.defense);
+                const isDead = player.takeDamage(actualDamage);
+                
+                // 播放玩家受击动画
+                const playerSprite = document.getElementById('playerSprite');
+                if (playerSprite) {
+                  playerSprite.classList.add('hit');
+                  setTimeout(() => {
+                    playerSprite.classList.remove('hit');
+                  }, 300);
+                }
+                
+                // 创建攻击特效
+                const attackEffect = document.createElement('div');
+                attackEffect.className = 'enemy-attack-effect';
+                attackEffect.style.left = (player.x - 30) + 'px';
+                attackEffect.style.bottom = '70px';
+                document.getElementById('gameArea').appendChild(attackEffect);
+                
+                setTimeout(() => {
+                  attackEffect.remove();
+                }, 400);
+                
+                // 播放受击音效（如果有）
+                if (typeof playSound !== 'undefined') {
+                  playSound('playerHit');
+                }
+              }
+            }, 300);
+            
+            // 恢复攻击状态
+            setTimeout(() => {
+              enemy.isAttacking = false;
+              enemyElement.classList.remove('attacking');
+              
+              // 恢复动画
+              if (spriteElement) {
+                if (isMoving) {
+                  spriteElement.style.animation = 'octopusMove 0.8s ease-in-out infinite';
+                } else {
+                  spriteElement.style.animation = 'octopusBounce 2s ease-in-out infinite';
+                }
+              }
+            }, 600);
+          }
+        }
+        
+        // 边界限制
+        enemy.x = Math.max(70, Math.min(gameAreaWidth - 70 - (enemy.width || 45), enemy.x));
+        enemy.y = groundY - (enemy.height || 50); // 确保敌人完全站在地面上
+        
+        // 更新敌人动画状态
+        const enemyElements = document.querySelectorAll('.enemy');
+        if (enemyElements[index]) {
+          const spriteElement = enemyElements[index].querySelector('.enemy-sprite.octopus');
+          if (spriteElement) {
+            // 如果正在攻击，不改变动画
+            if (enemy.isAttacking) {
+              // 保持攻击动画的方向
+              spriteElement.style.transform = dx > 0 ? 'scaleX(1)' : 'scaleX(-1)';
+            } else if (isMoving) {
+              spriteElement.style.animation = 'octopusMove 0.8s ease-in-out infinite';
+              // 根据移动方向翻转
+              spriteElement.style.transform = dx > 0 ? 'scaleX(1)' : 'scaleX(-1)';
+            } else {
+              spriteElement.style.animation = 'octopusBounce 2s ease-in-out infinite';
+              spriteElement.style.transform = 'scaleX(1)';
+            }
+          }
+        }
+      });
+    }
+
+    function checkLevelUp() {
+      while (playerLevel < EXP_PER_LEVEL.length && playerExp >= EXP_PER_LEVEL[playerLevel]) {
+        playerLevel++;
+        // 升级奖励
+        player.stats.maxHealth += 20;
+        player.stats.health = player.stats.maxHealth;
+        player.stats.attack += 3;
+        player.stats.defense += 1;
+        showLevelUpPopup();
+      }
+    }
+
+    function checkRewardGate() {
+      if (!rewardGateUnlocked && score >= REWARD_GATE_SCORE && !rewardGateUsed) {
+        rewardGateUnlocked = true;
+        showRewardGatePopup();
+      }
+    }
+
+    function showLevelUpPopup() {
+      alert(`🎉 升级！你现在是 ${playerLevel} 级！\n生命值 +20\n攻击力 +3\n防御力 +1`);
+    }
+
+    function showRewardGatePopup() {
+      const choice = confirm(`🎁 恭喜！你已达到 ${REWARD_GATE_SCORE} 分！\n解锁奖励门！\n\n选择奖励：\n\n🗡️ 攻击力 +10\n🛡️ 防御力 +5\n❤️ 最大生命值 +50\n💰 金币 +200`);
+      
+      if (choice) {
+        const rewards = [
+          { name: '攻击力', stat: 'attack', value: 10, icon: '🗡️' },
+          { name: '防御力', stat: 'defense', value: 5, icon: '🛡️' },
+          { name: '生命值', stat: 'maxHealth', value: 50, icon: '❤️' },
+          { name: '金币', stat: 'gold', value: 200, icon: '💰' }
+        ];
+        
+        const randomReward = rewards[Math.floor(Math.random() * rewards.length)];
+        
+        if (randomReward.stat === 'gold') {
+          player.addGold(randomReward.value);
+        } else if (randomReward.stat === 'maxHealth') {
+          player.stats.maxHealth += randomReward.value;
+          player.stats.health += randomReward.value;
+        } else {
+          player.stats[randomReward.stat] += randomReward.value;
+        }
+        
+        alert(`${randomReward.icon} 获得奖励：${randomReward.name} +${randomReward.value}`);
+        rewardGateUsed = true;
+      }
+    }
+
+    function checkGateUnlock() {
+      if (!gateUnlocked && kills >= killsUntilGate) {
+        gateUnlocked = true;
+        showGate();
+        spawnTreasureChest();
+      }
+    }
+
+    function showGate() {
+      const gameArea = document.getElementById('gameArea');
+      const gate = document.createElement('div');
+      gate.className = 'gate';
+      gate.id = 'gate';
+      gate.textContent = '🚪';
+      gameArea.appendChild(gate);
+    }
+
+    function spawnTreasureChest() {
+      const gameArea = document.getElementById('gameArea');
+      const gameWidth = gameArea.offsetWidth;
+      
+      // 检查是否已经有宝箱
+      if (document.getElementById('treasureChest')) {
+        return;
+      }
+      
+      // 在随机位置生成宝箱（避开玩家和光门）
+      const chestX = Math.random() * (gameWidth - 200) + 100;
+      
+      const chest = document.createElement('div');
+      chest.className = 'treasure-chest';
+      chest.id = 'treasureChest';
+      chest.style.left = chestX + 'px';
+      chest.style.bottom = '60px';
+      chest.dataset.opened = 'false';
+      gameArea.appendChild(chest);
+    }
+
+    function checkTreasureChest() {
+      const chest = document.getElementById('treasureChest');
+      if (!chest || chest.dataset.opened === 'true') return;
+      
+      const chestRect = chest.getBoundingClientRect();
+      const gameArea = document.getElementById('gameArea');
+      const playerElement = document.getElementById('player');
+      const playerRect = playerElement.getBoundingClientRect();
+      const gameRect = gameArea.getBoundingClientRect();
+      
+      // 转换为游戏区域内的坐标
+      const chestX = chestRect.left - gameRect.left;
+      const playerX = playerRect.left - gameRect.left;
+      
+      // 检测玩家是否靠近宝箱（50像素范围内）
+      const distance = Math.abs(playerX - chestX);
+      if (distance < 50) {
+        openTreasureChest(chest);
+      }
+    }
+
+    function openTreasureChest(chest) {
+      chest.dataset.opened = 'true';
+      chest.classList.add('opened');
+      
+      // 随机选择一个奖励
+      const rewards = [
+        { type: 'gold', amount: 200 + Math.floor(Math.random() * 300) },
+        { type: 'exp', amount: 100 + Math.floor(Math.random() * 200) },
+        { type: 'health', amount: 30 + Math.floor(Math.random() * 50) }
+      ];
+      
+      const reward = rewards[Math.floor(Math.random() * rewards.length)];
+      
+      // 给予奖励
+      switch (reward.type) {
+        case 'gold':
+          player.addGold(reward.amount);
+          showRewardMessage(`获得 ${reward.amount} 金币！`);
+          break;
+        case 'exp':
+          playerExp += reward.amount;
+          showRewardMessage(`获得 ${reward.amount} 经验！`);
+          checkLevelUp();
+          break;
+        case 'health':
+          player.heal(reward.amount);
+          showRewardMessage(`恢复 ${reward.amount} 生命值！`);
+          break;
+      }
+      
+      // 创建开启特效
+      const particles = document.createElement('div');
+      particles.className = 'chest-particles';
+      chest.appendChild(particles);
+      
+      // 3秒后移除宝箱
+      setTimeout(() => {
+        chest.remove();
+      }, 3000);
+    }
+
+    function showRewardMessage(message) {
+      const messageElement = document.createElement('div');
+      messageElement.className = 'reward-message';
+      messageElement.textContent = message;
+      document.getElementById('gameArea').appendChild(messageElement);
+      
+      setTimeout(() => {
+        messageElement.remove();
+      }, 2000);
+    }
+
+    function createDeathEffect(x, y) {
+      const deathEffect = document.createElement('div');
+      deathEffect.className = 'death-effect';
+      deathEffect.style.left = x + 'px';
+      deathEffect.style.top = y + 'px';
+      document.getElementById('gameArea').appendChild(deathEffect);
+      
+      setTimeout(() => {
+        deathEffect.remove();
+      }, 1000);
+    }
+
+    function enterNextFloor() {
+      if (!gateUnlocked) return;
+      
+      const gameArea = document.getElementById('gameArea');
+      const gameAreaWidth = gameArea.offsetWidth;
+      
+      // 检查玩家是否靠近光门
+      const gatePosition = gameAreaWidth - 80;
+      if (player.x < gatePosition - 50 || player.x > gatePosition + 50) {
+        return;
+      }
+      
+      // 进入下一层
+      dungeon.nextFloor();
+      player.x = 100;
+      gateUnlocked = false;
+      killsUntilGate += 10; // 每层增加10只怪的要求
+      
+      // 移除光门
+      const gate = document.getElementById('gate');
+      if (gate) gate.remove();
+      
+      // 移除欢迎提示
+      document.getElementById('messageText').textContent = '';
+      document.getElementById('messageHint').textContent = '';
+      
+      // 更换背景
+      changeBackground();
+      
+      // 检查是否是boss层
+      checkBossFloor();
+      
+      updateUI();
+    }
+
+    function checkBossFloor() {
+      const floor = dungeon.currentFloor;
+      if (floor === 5 || floor === 10) {
+        // 创建boss房间
+        const room = dungeon.currentRoom;
+        room.type = 'boss';
+        room.enemies = [];
+        
+        // 根据层数创建不同的boss
+        const bossType = floor === 5 ? 'frankenstein' : 'mummy';
+        room.enemies.push(Enemy.createBoss(bossType, floor));
+        
+        // 更新房间显示
+        document.getElementById('messageText').textContent = floor === 5 ? '👹 科学怪人Boss!' : '👻 木乃伊Boss!';
+        document.getElementById('messageHint').textContent = '小心！Boss战开始！';
+      }
+    }
+
+    // 背景主题列表
+    const backgrounds = [
+      // 渐变背景（保留原有的）
+      'linear-gradient(180deg, #1a0a0a 0%, #2d1818 50%, #1a0a0a 100%)',
+      'linear-gradient(180deg, #0a1a0a 0%, #182d18 50%, #0a1a0a 100%)',
+      'linear-gradient(180deg, #0a0a1a 0%, #18182d 50%, #0a0a1a 100%)',
+      'linear-gradient(180deg, #1a0a1a 0%, #2d182d 50%, #1a0a1a 100%)',
+      'linear-gradient(180deg, #1a150a 0%, #2d2518 50%, #1a150a 100%)',
+      'linear-gradient(180deg, #0a151a 0%, #18252d 50%, #0a151a 100%)',
+      // 图片背景（新添加的）
+      'url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAoAAAAHgCAYAAAA10dzkAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH5gMVESkqQzkWfAAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAAAUSURBVBgZBcHPcsAABAAAQ+zWF8wAAAAASUVORK5CYII=") center/cover no-repeat, linear-gradient(180deg, #1a1a1a 0%, #2d2d2d 100%)',
+      'url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAoAAAAHgCAYAAAA10dzkAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH5gMVESkqQzkWfAAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAAAUSURBVBgZBcHPcsAABAAAQ+zWF8wAAAAASUVORK5CYII=") center/cover no-repeat, linear-gradient(180deg, #0a151a 0%, #18252d 100%)'
+    ];
+    
+    // 地牢图片背景数组（只包含图片背景）
+    const dungeonBackgrounds = [
+      'url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAoAAAAHgCAYAAAA10dzkAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH5gMVESkqQzkWfAAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAAAUSURBVBgZBcHPcsAABAAAQ+zWF8wAAAAASUVORK5CYII=") center/cover no-repeat, linear-gradient(180deg, #1a1a1a 0%, #2d2d2d 100%)',
+      'url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAoAAAAHgCAYAAAA10dzkAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH5gMVESkqQzkWfAAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAAAUSURBVBgZBcHPcsAABAAAQ+zWF8wAAAAASUVORK5CYII=") center/cover no-repeat, linear-gradient(180deg, #0a151a 0%, #18252d 100%)'
+    ];
+
+    function handleMovement() {
+      const gameArea = document.getElementById('gameArea');
+      const gameAreaWidth = gameArea.offsetWidth;
+      const playerWidth = 40;
+      const edgeThreshold = 60; // 边缘触发距离
+      
+      if (isMovingLeft) {
+        player.x -= player.stats.speed;
+        player.facingRight = false;
+        
+        // 检查是否到达左边缘
+        if (player.x <= edgeThreshold) {
+          if (dungeon.currentRoom.isRoomCleared()) {
+            const adjacent = dungeon.getAdjacentRooms();
+            const leftRoom = adjacent.find(a => a.direction === 'left');
+            if (leftRoom) {
+              dungeon.moveToRoom('left');
+              player.x = gameAreaWidth - edgeThreshold - playerWidth;
+              updateUI();
+            }
+          } else {
+            player.x = edgeThreshold; // 阻止继续移动
+          }
+        }
+      }
+      if (isMovingRight) {
+        player.x += player.stats.speed;
+        player.facingRight = true;
+        
+        // 检查是否到达右边缘
+        if (player.x >= gameAreaWidth - edgeThreshold - playerWidth) {
+          player.x = gameAreaWidth - edgeThreshold - playerWidth; // 阻止继续移动
+        }
+      }
+      // 更新玩家位置显示
+      const playerElement = document.getElementById('player');
+      playerElement.style.left = player.x + 'px';
+    }
+
+    function nextFloor() {
+      dungeon.nextFloor();
+      player.x = 100; // 重置玩家位置到左侧
+      changeBackground();
+      updateUI();
+    }
+
+    function changeBackground() {
+      const gameArea = document.getElementById('gameArea');
+      
+      // 70% 概率使用图片背景，30% 概率使用渐变背景
+      if (Math.random() < 0.7 && dungeonBackgrounds.length > 0) {
+        // 随机选择一个图片背景
+        const randomIndex = Math.floor(Math.random() * dungeonBackgrounds.length);
+        gameArea.style.background = dungeonBackgrounds[randomIndex];
+        gameArea.style.backgroundSize = 'cover';
+        gameArea.style.backgroundPosition = 'center';
+        gameArea.style.backgroundRepeat = 'no-repeat';
+      } else {
+        // 使用原来的渐变背景
+        const bgIndex = (dungeon.currentFloor - 1) % backgrounds.length;
+        gameArea.style.background = backgrounds[bgIndex];
+        gameArea.style.backgroundSize = 'auto';
+      }
+    }
+
+    function updateUI() {
+      const healthPercent = (player.stats.health / player.stats.maxHealth) * 100;
+      document.getElementById('healthFill').style.width = healthPercent + '%';
+      document.getElementById('healthText').textContent = Math.floor(player.stats.health) + ' / ' + player.stats.maxHealth;
+      document.getElementById('floorText').textContent = `第 ${dungeon.currentFloor} 层 | Lv.${playerLevel}`;
+      document.getElementById('goldText').textContent = '💰 ' + player.gold;
+      document.getElementById('scoreText').textContent = '分数: ' + score;
+      
+      const playerElement = document.getElementById('player');
+      const playerSprite = document.getElementById('playerSprite');
+      
+      playerElement.classList.toggle('invincible', player.isInvincible);
+      
+      // 更新玩家动画状态
+      updatePlayerAnimation();
+      
+      updateRoomDisplay();
+      updateInventory();
+      updateDirectionHints();
+    }
+    
+    function updatePlayerAnimation() {
+      const playerSprite = document.getElementById('playerSprite');
+      if (!playerSprite) return;
+      
+      // 清除所有状态类，但保留跳跃动画类，因为它有自己的时间控制
+      playerSprite.classList.remove('idle', 'walking', 'attacking', 'hit', 'facing-left');
+      
+      // 添加对应状态类
+      if (player.isAttacking) {
+        playerSprite.classList.add('attacking');
+      } else if (!player.isJumping && (isMovingLeft || isMovingRight)) {
+        playerSprite.classList.add('walking');
+      } else if (!player.isJumping) {
+        playerSprite.classList.add('idle');
+      }
+      
+      // 跳跃状态由playerJump函数单独处理
+      if (player.isJumping && !playerSprite.classList.contains('jumping')) {
+        playerSprite.classList.add('jumping');
+      }
+      
+      // 面向方向
+      if (!player.facingRight) {
+        playerSprite.classList.add('facing-left');
+      }
+    }
+
+    function updateRoomDisplay() {
+      const room = dungeon.currentRoom;
+      const messages = {
+        start: { text: '欢迎来到地牢！', hint: '击败敌人，收集装备，挑战Boss！' },
+        normal: { text: '战斗房间', hint: '击败所有敌人' },
+        treasure: { text: '宝箱房间', hint: '收集珍贵物品' },
+        shop: { text: '商店', hint: '购买强力装备' },
+        boss: { text: 'Boss房间', hint: '击败Boss进入下一层' },
+        rest: { text: '休息区', hint: '恢复全部生命值' }
+      };
+
+      document.getElementById('messageText').textContent = messages[room.type].text;
+      document.getElementById('messageHint').textContent = messages[room.type].hint;
+      document.getElementById('restBtn').style.display = room.type === 'rest' ? 'block' : 'none';
+
+      // 更新敌人显示
+      const enemiesContainer = document.getElementById('enemiesContainer');
+      enemiesContainer.innerHTML = room.enemies.map(e => `
+        <div class="enemy ${e.isAlive ? '' : 'dead'} ${e.type === 'frankenstein' || e.type === 'mummy' ? 'boss-enemy' : ''}" style="position: absolute; left: ${e.x}px; bottom: 50px;">
+          ${e.getSprite()}
+          <div class="enemy-health-bar">
+            <div class="enemy-health-fill" style="width: ${(e.stats.health / e.stats.maxHealth * 100)}%"></div>
+          </div>
+        </div>
+      `).join('');
+
+      // 更新物品显示
+      const itemsContainer = document.getElementById('itemsContainer');
+      itemsContainer.innerHTML = room.items.map(item => `
+        <div class="item" style="border-color: ${item.getRarityColor()}" onclick="collectItem('${item.id}')">
+          <div class="item-icon">${item.icon}</div>
+          <div class="item-name">${item.name}</div>
+        </div>
+      `).join('');
+      
+      // 更新地形显示
+      const terrainContainer = document.getElementById('terrainContainer');
+      terrainContainer.innerHTML = room.terrain.map(terrain => {
+        switch (terrain.type) {
+          case 'pillar':
+            return `
+              <div class="terrain pillar" style="left: ${terrain.x}px; bottom: ${gameHeight - terrain.y}px; width: ${terrain.width}px; height: ${terrain.height}px; background-color: ${terrain.color};">
+                <div class="pillar-top"></div>
+              </div>
+            `;
+          case 'rock':
+            return `
+              <div class="terrain rock" style="left: ${terrain.x}px; bottom: ${gameHeight - terrain.y}px; width: ${terrain.width}px; height: ${terrain.height}px; background-color: ${terrain.color};">
+                <div class="rock-shape"></div>
+              </div>
+            `;
+          default:
+            return '';
+        }
+      }).join('');
+    }
+
+    function updateInventory() {
+      const inventoryItems = document.getElementById('inventoryItems');
+      if (player.inventory.length === 0) {
+        inventoryItems.innerHTML = '<div class="empty-inventory">背包为空</div>';
+      } else {
+        inventoryItems.innerHTML = player.inventory.map(item => `
+          <div class="inventory-item" style="border-color: ${item.getRarityColor()}" onclick="useItem('${item.id}')">
+            ${item.icon}
+          </div>
+        `).join('');
+      }
+    }
+
+    function updateDirectionHints() {
+      const hints = document.getElementById('directionHints');
+      const adjacent = dungeon.getAdjacentRooms();
+      const canMove = { up: false, down: false, left: false, right: false };
+      
+      adjacent.forEach(adj => {
+        if (adj.room && dungeon.currentRoom.isRoomCleared()) {
+          canMove[adj.direction] = true;
+        }
+      });
+
+      hints.innerHTML = '';
+      const directions = ['up', 'down', 'left', 'right'];
+      const icons = { up: '⬆️', down: '⬇️', left: '⬅️', right: '➡️' };
+      directions.forEach(dir => {
+        if (canMove[dir]) {
+          const hint = document.createElement('div');
+          hint.className = 'direction-hint';
+          hint.textContent = icons[dir];
+          hint.onclick = () => moveRoom(dir);
+          hints.appendChild(hint);
+        }
+      });
+    }
+
+    // 战斗操作 - 近距离拳击
+    function playerAttackLeft() {
+      if (!player.attack()) return;
+      
+      isPlayerAttacking = true;
+      isAttackingLeft = true;
+      
+      // 检测左侧附近的敌人并造成伤害
+      const enemyHit = checkMeleeHit(true);
+      // 只有没有击中敌人才显示手部特效
+      if (!enemyHit) {
+        createAttackEffect();
+      }
+      
+      setTimeout(() => {
+        isPlayerAttacking = false;
+        isAttackingLeft = false;
+      }, player.attackTimer);
+    }
+
+    function playerAttackRight() {
+      if (!player.attack()) return;
+      
+      isPlayerAttacking = true;
+      isAttackingLeft = false;
+      
+      // 检测右侧附近的敌人并造成伤害
+      const enemyHit = checkMeleeHit(false);
+      // 只有没有击中敌人才显示手部特效
+      if (!enemyHit) {
+        createAttackEffect();
+      }
+      
+      setTimeout(() => {
+        isPlayerAttacking = false;
+      }, player.attackTimer);
+    }
+    
+    // 统一的攻击函数
+    function playerAttack() {
+      if (!player.attack()) return;
+      
+      isPlayerAttacking = true;
+      isAttackingLeft = !player.facingRight;
+      
+      // 检测附近的敌人并造成伤害
+      const enemyHit = checkMeleeHit(!player.facingRight);
+      // 只有没有击中敌人才显示手部特效
+      if (!enemyHit) {
+        createAttackEffect();
+      }
+      
+      setTimeout(() => {
+        isPlayerAttacking = false;
+      }, player.attackTimer);
+    }
+
+    function checkMeleeHit(isLeft) {
+      const room = dungeon.currentRoom;
+      const attackRange = 90; // 扩大攻击范围到90像素
+      const playerCenter = player.x + player.width / 2;
+      
+      for (let enemy of room.enemies) {
+        if (!enemy.isAlive || !enemy.x) continue;
+        
+        // 计算敌人中心位置
+        const enemyCenter = enemy.x + (enemy.width || 45) / 2;
+        // 计算与玩家中心的水平距离
+        const dx = enemyCenter - playerCenter;
+        const distance = Math.abs(dx);
+        
+        // 检查是否在攻击范围内，增加容错空间
+        if (isLeft) {
+          // 向左攻击：敌人在玩家左侧且在攻击范围内
+          if (dx < 0 && distance < attackRange + 10) {
+            dealMeleeDamage(enemy);
+            // 在敌人位置创建攻击特效
+            createAttackEffectAtEnemy(enemy, isLeft);
+            return true; // 击中敌人
+          }
+        } else {
+          // 向右攻击：敌人在玩家右侧且在攻击范围内
+          if (dx > 0 && distance < attackRange + player.width + 10) {
+            dealMeleeDamage(enemy);
+            // 在敌人位置创建攻击特效
+            createAttackEffectAtEnemy(enemy, isLeft);
+            return true; // 击中敌人
+          }
+        }
+        
+        // 额外的宽范围判定，确保不会漏掉敌人
+        if (distance < attackRange + 20) {
+          // 检查敌人是否在玩家的攻击方向上
+          const enemyX = enemy.x;
+          const enemyRight = enemyX + (enemy.width || 45);
+          const playerRight = player.x + player.width;
+          
+          if ((isLeft && enemyX < player.x && enemyRight > player.x - attackRange) ||
+              (!isLeft && enemyRight > playerRight && enemyX < playerRight + attackRange)) {
+            dealMeleeDamage(enemy);
+            createAttackEffectAtEnemy(enemy, isLeft);
+            return true;
+          }
+        }
+      }
+      return false; // 没有击中敌人
+    }
+
+    function dealMeleeDamage(enemy) {
+      const damage = player.getTotalAttack() * player.getCritMultiplier();
+      const isDead = enemy.takeDamage(damage);
+      
+      if (isDead) {
+        kills++;
+        score += enemy.stats.expReward;
+        playerExp += enemy.stats.expReward;
+        player.addGold(enemy.stats.rewardGold);
+        checkGateUnlock();
+        
+        // 创建死亡特效
+        createDeathEffect(enemy.x, enemy.y);
+      }
+      
+      // 创建击中特效
+      const hitEffect = document.createElement('div');
+      hitEffect.className = 'hit-effect';
+      hitEffect.style.left = enemy.x + 'px';
+      hitEffect.style.top = enemy.y + 'px';
+      document.getElementById('gameArea').appendChild(hitEffect);
+      
+      // 创建爆炸粒子
+      for (let i = 0; i < 3; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'explosion-particle';
+        particle.style.left = enemy.x + 15 + Math.random() * 10 + 'px';
+        particle.style.top = enemy.y + 15 + Math.random() * 10 + 'px';
+        particle.style.animationDelay = i * 0.05 + 's';
+        document.getElementById('gameArea').appendChild(particle);
+        
+        setTimeout(() => particle.remove(), 500);
+      }
+      
+      setTimeout(() => hitEffect.remove(), 300);
+    }
+
+
+
+    function createAttackEffect() {
+      const playerElement = document.getElementById('player');
+      const playerRect = playerElement.getBoundingClientRect();
+      const gameArea = document.getElementById('gameArea');
+      const gameRect = gameArea.getBoundingClientRect();
+      
+      // 创建手部攻击特效
+      const handEffect = document.createElement('div');
+      handEffect.className = 'hand-attack-effect';
+      // 转换为游戏区域内的坐标
+      const handLeft = isAttackingLeft ? 
+        (playerRect.left - gameRect.left) - 10 : 
+        (playerRect.right - gameRect.left) - 20;
+      handEffect.style.left = handLeft + 'px';
+      handEffect.style.top = (playerRect.top - gameRect.top) + playerRect.height / 2 + 10 + 'px';
+      gameArea.appendChild(handEffect);
+      
+      // 创建攻击轨迹特效
+      const slash = document.createElement('div');
+      slash.className = 'slash-effect';
+      const slashLeft = isAttackingLeft ? 
+        (playerRect.left - gameRect.left) - 30 : 
+        (playerRect.right - gameRect.left);
+      slash.style.left = slashLeft + 'px';
+      slash.style.top = (playerRect.top - gameRect.top) + playerRect.height / 2 + 'px';
+      gameArea.appendChild(slash);
+      
+      setTimeout(() => {
+        handEffect.remove();
+        slash.remove();
+      }, 400);
+    }
+    
+    // 在敌人位置创建攻击特效
+    function createAttackEffectAtEnemy(enemy, isLeft) {
+      const gameArea = document.getElementById('gameArea');
+      const enemyWidth = 40; // 敌人宽度
+      const enemyHeight = 60; // 敌人高度
+      
+      // 计算敌人中心位置
+      const centerX = enemy.x + enemyWidth / 2 - 40; // 特效宽度的一半
+      const centerY = enemy.y - enemyHeight / 2 - 20; // 特效高度的一半
+      
+      // 创建主要攻击特效（在敌人中心）
+      const mainEffect = document.createElement('div');
+      mainEffect.className = 'slash-effect';
+      mainEffect.style.left = centerX + 'px';
+      mainEffect.style.top = centerY + 'px';
+      // 根据攻击方向调整
+      mainEffect.style.transform = isLeft ? 'scaleX(1)' : 'scaleX(1)';
+      gameArea.appendChild(mainEffect);
+      
+      // 创建额外的爆炸效果
+      for (let i = 0; i < 2; i++) {
+        const extraEffect = document.createElement('div');
+        extraEffect.className = 'hand-attack-effect';
+        extraEffect.style.left = centerX - 20 + Math.random() * 40 + 'px';
+        extraEffect.style.top = centerY - 20 + Math.random() * 40 + 'px';
+        extraEffect.style.transform = `scale(${0.8 + Math.random() * 0.4})`;
+        extraEffect.style.animationDelay = i * 0.1 + 's';
+        gameArea.appendChild(extraEffect);
+        
+        setTimeout(() => extraEffect.remove(), 400);
+      }
+      
+      setTimeout(() => {
+        mainEffect.remove();
+      }, 400);
+    }
+
+    function moveLeft() {
+      player.facingRight = false;
+    }
+
+    function moveRight() {
+      player.facingRight = true;
+    }
+
+    function moveUp() {}
+    function moveDown() {}
+
+    function stopMove() {
+      isMovingLeft = false;
+      isMovingRight = false;
+    }
+    
+    // 第二个handleMovement函数已被移除，使用第一个完整的版本
+
+    function playerJump() {
+      // 如果在下落攻击中，不能跳跃
+      if (isFallingAttack) return;
+      
+      // 如果在地面，第一段跳
+      if (!isJumping && !player.isJumping) {
+        isJumping = true;
+        player.isJumping = true;
+        doubleJumpAvailable = true; // 允许二段跳
+        
+        // 获取角色元素
+        const playerElement = document.getElementById('player');
+        const pixelCharacter = playerElement.querySelector('.pixel-character');
+        
+        // 清除之前的动画类
+        pixelCharacter.classList.remove('jumping');
+        void pixelCharacter.offsetWidth; // 触发重绘
+        
+        // 添加跳跃动画类
+        pixelCharacter.classList.add('jumping');
+        
+        // 应用跳跃力
+        player.y -= 40; // 立即向上移动，匹配跳跃高度
+        
+        // 更新玩家位置显示
+        playerElement.style.bottom = player.y + 'px';
+        
+        // 落地
+        setTimeout(() => {
+          // 移除跳跃动画类
+          pixelCharacter.classList.remove('jumping');
+          
+          // 立即落地
+          isJumping = false;
+          player.isJumping = false;
+          doubleJumpAvailable = false; // 落地后重置二段跳
+          player.y += 40; // 恢复位置
+          playerElement.style.bottom = player.y + 'px';
+          
+          // 确保跳跃状态完全重置
+          setTimeout(() => {
+            isJumping = false;
+            player.isJumping = false;
+            // 强制设置玩家位置到地面
+            player.y = 60;
+            playerElement.style.bottom = '60px';
+          }, 50);
+        }, 700);
+      } 
+      // 如果在空中且有二段跳可用，二段跳
+      else if (isJumping && player.isJumping && doubleJumpAvailable) {
+        doubleJumpAvailable = false; // 消耗二段跳
+        
+        // 获取角色元素
+        const playerElement = document.getElementById('player');
+        const pixelCharacter = playerElement.querySelector('.pixel-character');
+        
+        // 清除之前的动画类
+        pixelCharacter.classList.remove('jumping');
+        void pixelCharacter.offsetWidth; // 触发重绘
+        
+        // 添加二段跳动画类
+        pixelCharacter.classList.add('jumping');
+        
+        // 应用二段跳力
+        player.y -= 35; // 二段跳高度稍低于第一段
+        
+        // 更新玩家位置显示
+        playerElement.style.bottom = player.y + 'px';
+        
+        // 播放二段跳特效
+        createDoubleJumpEffect();
+      }
+    }
+    
+    // 创建二段跳特效
+    function createDoubleJumpEffect() {
+      const playerElement = document.getElementById('player');
+      const gameArea = document.getElementById('gameArea');
+      
+      // 创建二段跳特效
+      const effect = document.createElement('div');
+      effect.className = 'double-jump-effect';
+      effect.style.left = (parseInt(playerElement.style.left) + 20) + 'px';
+      effect.style.bottom = (player.y - 20) + 'px';
+      
+      gameArea.appendChild(effect);
+      
+      // 特效结束后移除
+      setTimeout(() => effect.remove(), 300);
+    }
+
+    function startAttack() {
+      playerAttack();
+    }
+
+    function stopAttack() {}
+    
+    // 下落攻击
+    function startFallingAttack() {
+      // 只有在空中且不在下落攻击中才能触发
+      if ((isJumping || player.isJumping) && !isFallingAttack && player.y > 60) {
+        isFallingAttack = true;
+        
+        // 获取角色元素
+        const playerElement = document.getElementById('player');
+        const pixelCharacter = playerElement.querySelector('.pixel-character');
+        
+        // 添加下落攻击动画
+        pixelCharacter.classList.add('falling-attack');
+        
+        // 加速下落
+        const fallInterval = setInterval(() => {
+          if (player.y <= 60) {
+            clearInterval(fallInterval);
+            // 落地
+            landFallingAttack();
+          } else {
+            player.y -= 8; // 加速下落
+            playerElement.style.bottom = player.y + 'px';
+          }
+        }, 16);
+      }
+    }
+    
+    // 落地触发攻击效果
+    function landFallingAttack() {
+      isFallingAttack = false;
+      
+      // 获取角色元素
+      const playerElement = document.getElementById('player');
+      const pixelCharacter = playerElement.querySelector('.pixel-character');
+      
+      // 移除下落攻击动画
+      pixelCharacter.classList.remove('falling-attack');
+      
+      // 重置玩家位置到地面
+      player.y = 60;
+      playerElement.style.bottom = '60px';
+      
+      // 重置跳跃状态
+      isJumping = false;
+      player.isJumping = false;
+      doubleJumpAvailable = false;
+      
+      // 创建落地特效
+      createLandingEffect();
+      
+      // 造成伤害和击退
+      applyFallingAttackDamage();
+    }
+    
+    // 创建落地特效
+    function createLandingEffect() {
+      const playerElement = document.getElementById('player');
+      const gameArea = document.getElementById('gameArea');
+      
+      // 创建落地特效
+      const effect = document.createElement('div');
+      effect.className = 'landing-effect';
+      effect.style.left = (parseInt(playerElement.style.left) - 40) + 'px';
+      effect.style.bottom = '40px';
+      
+      gameArea.appendChild(effect);
+      
+      // 特效结束后移除
+      setTimeout(() => effect.remove(), 800);
+    }
+    
+    // 应用下落攻击伤害和击退
+    function applyFallingAttackDamage() {
+      // 查找附近的敌人
+      const enemies = document.querySelectorAll('.enemy');
+      const playerX = parseInt(document.getElementById('player').style.left);
+      
+      enemies.forEach(enemy => {
+        const enemyX = parseInt(enemy.style.left);
+        const distance = Math.abs(enemyX - playerX);
+        
+        // 对范围内的敌人造成伤害和击退
+        if (distance < 150) {
+          // 造成高额伤害
+          const enemyHealth = enemy.querySelector('.enemy-health-fill');
+          if (enemyHealth) {
+            const currentWidth = parseInt(enemyHealth.style.width || '100');
+            const newWidth = Math.max(0, currentWidth - 40); // 造成40%伤害
+            enemyHealth.style.width = newWidth + '%';
+            
+            // 如果敌人死亡
+            if (newWidth <= 0) {
+              enemy.classList.add('enemy-dead');
+              setTimeout(() => enemy.remove(), 500);
+            }
+          }
+          
+          // 击退敌人
+          const direction = enemyX > playerX ? 1 : -1;
+          enemy.style.left = (enemyX + direction * 80) + 'px';
+          
+          // 添加击退动画
+          enemy.classList.add('knockback');
+          setTimeout(() => enemy.classList.remove('knockback'), 300);
+        }
+      });
+    }
+
+    function jump() {
+      playerJump();
+    }
+
+    // 物品操作
+    function collectItem(itemId) {
+      const room = dungeon.currentRoom;
+      const itemIndex = room.items.findIndex(i => i.id === itemId);
+      if (itemIndex === -1) return;
+      
+      const item = room.items[itemIndex];
+      if (item.type === 'weapon') {
+        player.equipWeapon(item);
+      } else {
+        player.addItem(item);
+      }
+      room.items.splice(itemIndex, 1);
+      updateUI();
+    }
+
+
+
+    function useItem(itemId) {
+      const index = player.inventory.findIndex(i => i.id === itemId);
+      if (index === -1) return;
+      
+      const item = player.inventory[index];
+      if (item.type === 'potion') {
+        switch (item.effect.type) {
+          case 'health':
+            player.heal(item.effect.value);
+            break;
+          case 'strength':
+            player.stats.attack += item.effect.value;
+            break;
+          case 'defense':
+            player.stats.defense += item.effect.value;
+            break;
+          case 'speed':
+            player.stats.speed += item.effect.value;
+            break;
+          case 'crit':
+            player.stats.critRate += item.effect.value / 100;
+            break;
+        }
+        player.inventory.splice(index, 1);
+        updateUI();
+      }
+    }
+
+    // 房间移动
+    function moveRoom(direction) {
+      if (!dungeon.currentRoom.isRoomCleared()) return;
+      dungeon.moveToRoom(direction);
+      updateUI();
+      
+      if (dungeon.currentRoom.type === 'boss' && dungeon.currentRoom.enemies.every(e => !e.isAlive)) {
+        showVictory();
+      }
+    }
+
+    function rest() {
+      player.heal(player.stats.maxHealth);
+      updateUI();
+    }
+
+    // 游戏状态控制
+    function resumeGame() {
+      isPaused = false;
+      document.getElementById('pauseOverlay').classList.remove('active');
+    }
+
+    function quitGame() {
+      clearInterval(gameLoop);
+      saveStats();
+      document.getElementById('gameScreen').style.display = 'none';
+      document.getElementById('menuScreen').style.display = 'flex';
+      loadGameData();
+      updateMenuStats();
+    }
+
+    function restartGame() {
+      clearInterval(gameLoop);
+      document.getElementById('gameoverOverlay').classList.remove('active');
+      startGame();
+    }
+
+    function showVictory() {
+      isVictory = true;
+      document.getElementById('victoryScore').textContent = score;
+      document.getElementById('victoryOverlay').classList.add('active');
+    }
+
+    function nextFloor() {
+      document.getElementById('victoryOverlay').classList.remove('active');
+      dungeon.nextFloor();
+      isVictory = false;
+      updateUI();
+    }
+
+    function saveStats() {
+      gameData.maxFloor = Math.max(gameData.maxFloor, dungeon.currentFloor);
+      gameData.totalKills += kills;
+      gameData.highScore = Math.max(gameData.highScore, score);
+      gameData.gold += player.gold;
+      saveGameData();
+    }
+
+    // 键盘控制
+    function handleKeyDown(e) {
+      switch (e.key) {
+        case 'ArrowLeft':
+        case 'a':
+        case 'A':
+          isMovingLeft = true;
+          moveLeft();
+          break;
+        case 'ArrowRight':
+        case 'd':
+        case 'D':
+          isMovingRight = true;
+          moveRight();
+          break;
+        case ' ':
+        case 'ArrowUp':
+        case 'w':
+        case 'W':
+          playerJump();
+          break;
+        case 'j':
+        case 'J':
+          playerAttackLeft();
+          break;
+        case 'k':
+        case 'K':
+          playerAttackRight();
+          break;
+        case 'f':
+        case 'F':
+          enterNextFloor();
+          break;
+        case 'Escape':
+          isPaused = !isPaused;
+          document.getElementById('pauseOverlay').classList.toggle('active', isPaused);
+          break;
+      }
+    }
+
+    function handleKeyUp(e) {
+      switch (e.key) {
+        case 'ArrowLeft':
+        case 'a':
+        case 'A':
+          isMovingLeft = false;
+          break;
+        case 'ArrowRight':
+        case 'd':
+        case 'D':
+          isMovingRight = false;
+          break;
+      }
+    }
+
+    // 触摸滑动控制
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    function handleTouchStart(e) {
+      const touch = e.touches[0];
+      touchStartX = touch.clientX;
+      touchStartY = touch.clientY;
+    }
+
+    function handleTouchMove(e) {
+      const touch = e.touches[0];
+      const deltaX = touch.clientX - touchStartX;
+      const deltaY = touch.clientY - touchStartY;
+      
+      if (Math.abs(deltaX) > Math.abs(deltaY)) {
+        if (deltaX > 30) {
+          moveRight();
+        } else if (deltaX < -30) {
+          moveLeft();
+        }
+      }
+    }
+
+    // 初始化事件监听
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    
+    // 页面加载完成后初始化
+    window.addEventListener('load', init);
+    
+    // 暴露全局函数
+    window.startGame = startGame;
+    window.restartGame = restartGame;
+    window.quitGame = quitGame;
+    window.jump = jump;
+    window.startAttack = startAttack;
+    window.stopAttack = stopAttack;
+  </script>
+</body>
+</html>

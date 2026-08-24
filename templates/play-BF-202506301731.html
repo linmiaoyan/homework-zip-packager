@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% if game %}{{ game.title }} — 在线体验{% else %}游戏不存在{% endif %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="play-body">
+  <main class="play-layout">
+    <header class="play-header">
+      <div class="play-header-main">
+        <a class="nav-link" href="/gallery">← 返回展厅</a>
+        {% if game %}
+        <h1>{{ game.title }}</h1>
+        <p class="play-meta">
+          {% if game.doc %}文档号 {{ game.doc }} · {% endif %}
+          {% if game.leader %}组长 {{ game.leader }}{% endif %}
+          {% if game.work %} · 作品 {{ game.work }}{% endif %}
+          {% if game.runtime == 'pygame' %} · <strong>Pygame 桌面游戏</strong>{% elif game.runtime == 'python' %} · <strong>Python 程序</strong>{% endif %}
+        </p>
+        {% if game.runtime in ('pygame', 'python') %}
+        <p class="play-meta play-note">浏览器内展示作品说明与运行方式，实际游玩需下载后在本地运行 Python。</p>
+        {% endif %}
+        {% if intro and intro.description %}
+        <p class="play-intro">{{ intro.description }}</p>
+        {% endif %}
+        {% else %}
+        <h1>游戏无法加载</h1>
+        <p class="play-meta muted">该压缩包可能未包含可运行的 HTML 页面。</p>
+        {% endif %}
+      </div>
+      {% if game %}
+      <div class="play-timer" id="play-timer">
+        <span class="play-timer-label">体验时长</span>
+        <span id="timer-display">00:00</span>
+      </div>
+      {% endif %}
+    </header>
+
+    {% if game %}
+    <section class="play-stage">
+      <iframe
+        id="game-frame"
+        class="game-frame"
+        src="{{ game.play_url }}"
+        title="{{ game.title }}"
+        allow="fullscreen"
+      ></iframe>
+    </section>
+
+    <aside class="play-sidebar card">
+      <section class="rating-summary">
+        <h2>作品评分</h2>
+        <div id="rating-summary-text" class="muted">
+          {% if summary.count %}
+          共 {{ summary.count }} 人评分，平均分 {{ summary.average }}
+          {% else %}
+          暂无评分
+          {% endif %}
+        </div>
+      </section>
+
+      <section id="rating-panel" class="rating-panel locked">
+        <p id="rating-hint" class="rating-hint">体验满 1 分钟后即可评分</p>
+        <form id="rating-form" class="rating-form">
+          <label class="field">
+            <span>昵称</span>
+            <input id="nickname" name="nickname" type="text" maxlength="32" placeholder="你的昵称" autocomplete="nickname" disabled>
+          </label>
+          <label class="field">
+            <span>分数（0–100）</span>
+            <input id="score" name="score" type="number" min="0" max="100" step="1" placeholder="85" disabled>
+          </label>
+          <button id="submit-rating" type="submit" disabled>提交评分</button>
+          <p id="rating-status" class="status" aria-live="polite"></p>
+        </form>
+      </section>
+
+      <section class="rating-list-wrap">
+        <h3>最近评分</h3>
+        <ul id="rating-list" class="rating-list">
+          <li class="muted">加载中…</li>
+        </ul>
+      </section>
+
+      <section class="comment-section">
+        <h2>评论区</h2>
+        <p class="comment-hint muted">选填，欢迎留下体验感受或建议</p>
+        <form id="comment-form" class="comment-form">
+          <label class="field">
+            <span>昵称（选填）</span>
+            <input id="comment-nickname" name="comment-nickname" type="text" maxlength="32" placeholder="不填则显示为匿名" autocomplete="nickname">
+          </label>
+          <label class="field">
+            <span>评论（选填）</span>
+            <textarea id="comment-content" name="comment-content" rows="3" maxlength="500" placeholder="写下你的评论…"></textarea>
+          </label>
+          <button id="submit-comment" type="submit">发表评论</button>
+          <p id="comment-status" class="status" aria-live="polite"></p>
+        </form>
+        <h3>全部评论 <span id="comment-count" class="comment-count">0</span></h3>
+        <ul id="comment-list" class="comment-list">
+          <li class="muted">加载中…</li>
+        </ul>
+      </section>
+    </aside>
+    {% endif %}
+  </main>
+
+  {% if game %}
+  <script>
+    window.PLAY_CONFIG = {
+      slug: {{ slug|tojson }},
+      minPlaySeconds: 60,
+      playUrl: {{ game.play_url|tojson }}
+    };
+  </script>
+  <script src="{{ url_for('static', filename='play.js') }}"></script>
+  {% endif %}
+</body>
+</html>

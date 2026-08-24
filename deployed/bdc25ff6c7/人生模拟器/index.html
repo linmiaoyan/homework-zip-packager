@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>人生模拟器</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <h1>人生模拟器</h1>
+        
+        <!-- 开始界面 -->
+        <div id="start-screen" class="screen">
+            <p>欢迎来到人生模拟器！</p>
+            <p>你将从出生开始，体验随机的人生事件，并根据选择影响你的人生轨迹。</p>
+            <p>在开始前，你将抽取3张特质卡，获得随机的buff加成。</p>
+            <button id="start-btn">开始游戏</button>
+        </div>
+        
+        <!-- 抽卡界面 -->
+        <div id="card-screen" class="screen" style="display: none;">
+            <h2>抽取特质卡</h2>
+            <p>你将抽取3张特质卡，它们会影响你的人生轨迹。</p>
+            <div class="card-container" id="card-container">
+                <!-- 卡片将通过JavaScript动态生成 -->
+            </div>
+            <button id="confirm-cards-btn" style="display: none;">确认选择</button>
+        </div>
+        
+        <!-- 游戏界面 -->
+        <div id="game-screen" class="screen" style="display: none;">
+            <div class="status-bar">
+                <div class="status-item">
+                    <span class="status-label">年龄:</span>
+                    <span id="age" class="status-value">0</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">财富:</span>
+                    <span id="wealth" class="status-value">1000</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">健康:</span>
+                    <span id="health" class="status-value">100</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">幸福:</span>
+                    <span id="happiness" class="status-value">80</span>
+                </div>
+            </div>
+            
+            <div class="event-container">
+                <h2 id="event-title">人生事件</h2>
+                <p id="event-description">事件描述将显示在这里。</p>
+                <div class="choices" id="choices">
+                    <!-- 选择将通过JavaScript动态生成 -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- 结局界面 -->
+        <div id="end-screen" class="screen" style="display: none;">
+            <h2>人生结局</h2>
+            <p id="end-message">你的人生结束了。</p>
+            <div class="achievements" id="achievements">
+                <h3>获得的成就</h3>
+                <!-- 成就将通过JavaScript动态生成 -->
+            </div>
+            <button id="restart-btn">重新开始</button>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
