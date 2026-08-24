@@ -37,3 +37,13 @@ python app.py
 - `POST /api/preview` — 实时预览命名
 - `POST /api/pack` — 上传文件夹并打包
 - `GET /api/collect` — 查看收集目录中的压缩包列表
+
+## 部署清单维护（MANIFEST）
+
+`收集/xxx.zip` 的文件名（去掉 `.zip`）做 SHA256 取前 10 位，即得 `deployed/<slug>` 目录名；
+展厅由 `收集/` 中的 zip 自动派生部署。`MANIFEST.md` 自动记录两者对应关系，勿手工编辑：
+
+```bash
+python3 gen_manifest.py            # 刷新 MANIFEST.md 并打印预览
+python3 gen_manifest.py --clean    # 刷新的同时，自动删除无对应 zip 的孤儿 deployed 目录
+```
