@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>键盘测试</title>
+    <style>
+        body { font-family: Arial; background: #333; color: #fff; }
+        #log { height: 300px; overflow-y: scroll; border: 1px solid #fff; padding: 10px; }
+    </style>
+</head>
+<body>
+    <h1>键盘测试</h1>
+    <p>按 WASD 或空格键测试键盘输入</p>
+    <div id="log"></div>
+    
+    <script>
+        const log = document.getElementById('log');
+        
+        function addLog(text) {
+            log.innerHTML += '<p>' + text + '</p>';
+            log.scrollTop = log.scrollHeight;
+        }
+        
+        document.addEventListener('keydown', (e) => {
+            addLog('Key down: ' + e.key);
+        });
+        
+        document.addEventListener('keyup', (e) => {
+            addLog('Key up: ' + e.key);
+        });
+        
+        addLog('测试页面已加载，按任意键测试');
+    </script>
+</body>
+</html>
